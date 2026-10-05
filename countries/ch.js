@@ -174,7 +174,8 @@
       return out;
     },
     // Federal + place-dependent cantonal/communal income tax (single, no
-    // children). opts.place selects the place (default 'bund' = federal only);
+    // children). opts.place selects the place (default = the module's
+    // placeDefault, currently 'zh');
     // cantonal part = einfache Steuer x (Kantonssteuerfuss + Gemeindesteuerfuss).
     incomeTax(gross, opts) {
       const I = Math.max(0, num(gross));
