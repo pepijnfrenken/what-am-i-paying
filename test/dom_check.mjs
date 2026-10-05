@@ -300,8 +300,8 @@ async function main() {
   // pint preset
   let ok = await act(`(() => { const s = document.getElementById('item'); s.value = 'pint'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   snap = await snapshot();
-  check('UK: pint preset figures (£8.06 / -£0.50 / £4.34)',
-    snap.r.gross === '£8.06' && snap.r.duty === '−£0.50' && snap.r.under === '£4.34' && snap.r.could === '£4.34',
+  check('UK: pint preset figures (£8.06 / -£0.49 / £4.34)',
+    snap.r.gross === '£8.06' && snap.r.duty === '−£0.49' && snap.r.under === '£4.34' && snap.r.could === '£4.34',
     `${snap.r.gross} | ${snap.r.duty} | ${snap.r.under} | ${snap.r.could}`);
   cross('UK: pint receipt matches WAIP.compute (draught)', WAIP.countries.uk, snap, ['price', 'vat', 'duty', 'under', 'gross', 'tax']);
   check('UK: duty sub-line rendered (Alcohol duty)', snap.r.dutySubs.includes('Alcohol duty'), snap.r.dutySubs.slice(0, 60));

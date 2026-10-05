@@ -1,15 +1,18 @@
 /* countries/uk.js — United Kingdom.
- * Port of the original "What am I actually paying?" page (UK, October 2026);
- * test/uk_check.mjs proves it reproduces that page's formulas exactly.
- * Every number below, with its source, is in countries/uk-rates-2026.md
- * (duties) and countries/uk-tax-2026.md (income tax).
+ * Every rate below was independently verified against gov.uk on 2026-10-05
+ * (see countries/uk-rates-2026.md; income tax in countries/uk-tax-2026.md).
+ * The original "What am I actually paying?" page contributed the concept
+ * only — test/uk_check.mjs pins the gov.uk-sourced math.
  *
  * Duty mechanics:
  *  - Alcohol: per litre of pure alcohol, the rate picked by strength band,
  *    drink type (beer vs other below 8.5 %) and draught relief (below 8.5 %).
+ *    HMRC rounds each liability DOWN to the penny (work-out-how-much-
+ *    alcohol-duty); the engine applies the same round-down.
  *  - Cigarettes: £ 394.09 per 1,000 + 16.5 % of retail price, or the
  *    minimum excise £ 518.75 per 1,000 when that is higher.
- *  - Fuel 52.95p/L; vaping £ 2.20 per 10 ml; soft drinks levy by sugar band.
+ *  - Fuel 52.95p/L (freeze to 31 Dec 2026); vaping £ 2.20 per 10 ml; soft
+ *    drinks levy by sugar band.
  */
 (function (g) {
   const WAIP = g.WAIP;
@@ -18,8 +21,14 @@
   const RATES = {
     // £ per litre of pure alcohol, from 1 Feb 2026
     alcohol: { low: 9.96, lowDraught: 8.58, beer: 22.58, other: 26.61, midDraught: 19.45, strong: 30.62, spirits: 33.99 },
-    drinks: { high: 0.278, std: 0.208, none: 0 }, // soft drinks levy, £ per litre
+    // soft drinks levy, £ per litre — 'std' = official "lower" band (5 g to
+    // under 8 g), 'high' = official "higher" band (8 g+ per 100 ml)
+    drinks: { high: 0.278, std: 0.208, none: 0 },
     cig: { spec_per_1000: 394.09, advalorem: 0.165, min_per_1000: 518.75 },
+    // 52.95p/L — the temporary 5p cut now runs to 31 Dec 2026. Diary: 55.95p
+    // from 1 Jan 2027, 57.95p from 1 Mar 2027 (legislative default, confirmed
+    // at Budget 2026; the Sep-2026 +1p step was cancelled). Revisit this
+    // value before 1 Jan 2027.
     fuel_per_l: 0.5295,
     vape_per_ml: 0.22
   };
@@ -93,7 +102,10 @@
         const draught = !!p.draughtOn;
         const rate = alcRate(abv, p.cat, draught && abv < 8.5);
         const lpa = ml / 1000 * abv / 100; // litres of pure alcohol
-        if (rate) out.push({ label: `Alcohol duty (${lpa.toFixed(3)} L pure alcohol \u00d7 \u00a3${rate.toFixed(2)})`, v: lpa * rate });
+        if (rate) out.push({ label: `Alcohol duty (${lpa.toFixed(3)} L pure alcohol \u00d7 \u00a3${rate.toFixed(2)})`,
+          // HMRC: "round down to the nearest penny" when working out how much
+          // alcohol duty you need to pay (work-out-how-much-alcohol-duty).
+          v: Math.floor(lpa * rate * 100) / 100 });
       } else if (kind === 'drinks') {
         const r = R.drinks[p.dband] || 0;
         if (r) out.push({ label: `Soft drinks levy (${(r * 100).toFixed(1)}p per litre)`, v: num(p.dml) / 1000 * r });

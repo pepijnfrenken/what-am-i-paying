@@ -1,13 +1,14 @@
-// test/uk_check.mjs — verify the modular UK country module reproduces the
-// original UK page's math exactly (verbatim formulas re-implemented here),
-// plus a few hand-computed anchors.
+// test/uk_check.mjs — verify the modular UK country module against the
+// gov.uk-sourced 2026 rates (countries/uk-rates-2026.md, verified 2026-10-05).
+// Alcohol duty applies HMRC's round-down-to-the-penny; per-preset deltas are
+// pinned as a regression fence, plus a few hand-computed anchors.
 import { loadWAIP } from './lib/waip.mjs';
 
 const WAIP = loadWAIP(['uk']);
 const uk = WAIP.countries.uk;
 const num = v => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
 
-// --- original page math (verbatim logic from the published UK page) ---------
+// --- gov.uk math (rates + HMRC round-down re-implemented here) --------------
 function origCompute(preset, marginal) {
   const price = preset.price, vr = preset.vat, p = preset.panel || {};
   const vat = price * vr / (1 + vr);
@@ -21,7 +22,8 @@ function origCompute(preset, marginal) {
     else if (abv < 8.5) rate = dr ? 19.45 : (cat === 'beer' ? 22.58 : 26.61);
     else if (abv <= 22) rate = 30.62;
     else rate = 33.99;
-    duty = (ml / 1000 * abv / 100) * rate;
+    // HMRC: round each alcohol-duty liability down to the penny.
+    duty = Math.floor((ml / 1000 * abv / 100) * rate * 100) / 100;
   } else if (preset.kind === 'drinks') {
     const r = ({ high: 0.278, std: 0.208, none: 0 })[p.dband] || 0;
     duty = num(p.dml) / 1000 * r;
@@ -63,11 +65,14 @@ for (const [key, preset] of Object.entries(uk.presets)) {
   if (!ok) fails++;
 }
 // hand-computed anchor: pint 5.80, 568ml, 4.5%, draught -> rate 19.45, lpa=0.02556
+// HMRC round-down moved the anchors: raw lpa*rate was pint 0.497142 ->
+// 0.49, beer4 1.589632 -> 1.58, wine 2.98545 -> 2.98, gin 9.5172 -> 9.51
+// (all -1p or less; SDIL/fuel/tobacco/vape formulas are unchanged).
 {
   const got = WAIP.compute(uk, { price: 5.80, vatRate: 0.20, marginal, kind: 'alcohol', panel: { cat: 'beer', ml: 568, abv: 4.5, draughtOn: true } });
-  const expDuty = (568 / 1000 * 0.045) * 19.45;
+  const expDuty = Math.floor((568 / 1000 * 0.045) * 19.45 * 100) / 100; // = 0.49
   const ok = Math.abs(got.duty - expDuty) < 1e-9;
-  console.log(`anchor: pint 5.80 -> duty ${got.duty.toFixed(6)} (expected ${expDuty.toFixed(6)}) ${ok ? 'ok' : 'FAIL'}`);
+  console.log(`anchor: pint 5.80 -> duty ${got.duty.toFixed(6)} (expected, penny-rounded ${expDuty.toFixed(6)}) ${ok ? 'ok' : 'FAIL'}`);
   if (!ok) fails++;
 }
 // hand-computed anchor: Big Mac 5.49 @ 20% VAT, no duty
