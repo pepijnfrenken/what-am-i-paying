@@ -21,8 +21,10 @@ test/ch_check.mjs     verifies the CH module against the sourced 2026 rates
 test/bg_check.mjs     verifies the BG module against the sourced 2026 rates
 ```
 
-No dependencies, no build step. Open `index.html` directly (`file://` works),
-or serve it: `python3 -m http.server` → http://localhost:8000/?c=nl
+The live site is at **https://pepijnfrenken.github.io/what-am-i-paying/**
+(`?c=nl` | `?c=uk` | `?c=ch` | `?c=bg` switches country).
+No dependencies, no build step — for local development, open `index.html`
+directly in a browser (`file://` works).
 
 ## Adding a country (4 steps)
 
