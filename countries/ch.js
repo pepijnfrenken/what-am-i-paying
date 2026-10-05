@@ -19,31 +19,32 @@
     code: 'ch',
     name: 'Schweiz',
     ratesStatus: 'ok',
+    langNative: 'Deutsch',
     currency: { symbol: 'CHF ', decimals: 2 },
     presets: {
-      bier:      { name: 'Bier 5 dl in der Bar, 12\u00b0P', price: 7.50, vat: 0.081, kind: 'alcohol', panel: { cat: 'beer', ml: 500, plato: 12 } },
-      bier6:     { name: '6er-Pack Bier (6 \u00d7 50 cl, 12\u00b0P)', price: 11.50, vat: 0.081, kind: 'alcohol', panel: { cat: 'beer', ml: 3000, plato: 12 } },
-      wein:      { name: 'Weinflasche 75 cl', price: 12.95, vat: 0.081, kind: 'alcohol', panel: { cat: 'wine', ml: 750, abv: 13 }, noDutyLabel: 'Keine Bundessteuer auf Wein \u2014 kantonale Abgaben m\u00f6glich' },
-      schnaps:   { name: 'Schnapsflasche 70 cl 40 %', price: 20.00, vat: 0.081, kind: 'alcohol', panel: { cat: 'spirit', ml: 700, abv: 40 } },
-      zigaretten:{ name: 'Zigaretten 20 Stk', price: 9.40, vat: 0.081, kind: 'cigs', panel: { sticks: 20 } },
-      benzin:    { name: 'Benzin 95, 1 L', price: 2.10, vat: 0.081, kind: 'fuel', panel: { fueltype: 'petrol', litres: 1 } },
-      diesel:    { name: 'Diesel, 1 L', price: 2.41, vat: 0.081, kind: 'fuel', panel: { fueltype: 'diesel', litres: 1 } },
-      strom:     { name: 'Strom 1 kWh', price: 0.277, vat: 0.081, kind: 'energy', panel: { kwh: 1, m3: 0 }, noDutyLabel: 'Keine Bundessteuer auf Strom' },
-      brot:      { name: 'Brot 500 g', price: 1.00, vat: 0.026, kind: 'none' },
-      hotel:     { name: 'Hotel\u00fcbernachtung', price: 120.00, vat: 0.038, kind: 'none' },
-      custom:    { name: 'Anderes', price: 10.00, vat: 0.081, kind: 'custom', panel: { cfix: 0, cpct: 0 } }
+      bier:      { name: 'Bier 5 dl in der Bar, 12\u00b0P', nameEn: 'Beer 5 dl in a bar, 12°P', price: 7.50, vat: 0.081, kind: 'alcohol', panel: { cat: 'beer', ml: 500, plato: 12 } },
+      bier6:     { name: '6er-Pack Bier (6 \u00d7 50 cl, 12\u00b0P)', nameEn: '6-pack of beer (6 \u00d7 50 cl, 12°P)', price: 11.50, vat: 0.081, kind: 'alcohol', panel: { cat: 'beer', ml: 3000, plato: 12 } },
+      wein:      { name: 'Weinflasche 75 cl', nameEn: 'Bottle of wine (75 cl)', price: 12.95, vat: 0.081, kind: 'alcohol', panel: { cat: 'wine', ml: 750, abv: 13 }, noDutyLabel: 'Keine Bundessteuer auf Wein \u2014 kantonale Abgaben m\u00f6glich', noDutyLabelEn: 'No federal duty on wine \u2014 cantonal levies possible' },
+      schnaps:   { name: 'Schnapsflasche 70 cl 40 %', nameEn: 'Bottle of spirits 70 cl 40%', price: 20.00, vat: 0.081, kind: 'alcohol', panel: { cat: 'spirit', ml: 700, abv: 40 } },
+      zigaretten:{ name: 'Zigaretten 20 Stk', nameEn: 'Cigarettes, 20', price: 9.40, vat: 0.081, kind: 'cigs', panel: { sticks: 20 } },
+      benzin:    { name: 'Benzin 95, 1 L', nameEn: 'Petrol 95, 1 L', price: 2.10, vat: 0.081, kind: 'fuel', panel: { fueltype: 'petrol', litres: 1 } },
+      diesel:    { name: 'Diesel, 1 L', nameEn: 'Diesel, 1 L', price: 2.41, vat: 0.081, kind: 'fuel', panel: { fueltype: 'diesel', litres: 1 } },
+      strom:     { name: 'Strom 1 kWh', nameEn: 'Electricity 1 kWh', price: 0.277, vat: 0.081, kind: 'energy', panel: { kwh: 1, m3: 0 }, noDutyLabel: 'Keine Bundessteuer auf Strom', noDutyLabelEn: 'No federal duty on electricity' },
+      brot:      { name: 'Brot 500 g', nameEn: 'Bread 500 g', price: 1.00, vat: 0.026, kind: 'none' },
+      hotel:     { name: 'Hotel\u00fcbernachtung', nameEn: 'Hotel night', price: 120.00, vat: 0.038, kind: 'none' },
+      custom:    { name: 'Anderes', nameEn: 'Other', price: 10.00, vat: 0.081, kind: 'custom', panel: { cfix: 0, cpct: 0 } }
     },
     // Geschätzte Grenzsteuersätze (Bund + AHV/IV/EO + ALV + Kanton/Gemeinde),
     // siehe ch-rates-2026.md; ohne BVG, NBU, Kirchen- und Vermögenssteuer.
     taxBands: [
-      { label: 'Bund + Sozialabgaben, mittleres Einkommen \u2248 13.0 %', rate: 0.13 },
-      { label: 'Bund + Sozialabgaben, Spitzenverdiener \u2248 16.8 %', rate: 0.168 },
-      { label: 'Z\u00fcrich Stadt, ~CHF 100k steuerbar \u2248 32.3 %', rate: 0.323, selected: true },
-      { label: 'Gen\u00e8ve Ville, ~CHF 100k \u2248 38.0 %', rate: 0.38 },
-      { label: 'Lausanne / VD, ~CHF 100k \u2248 40.1 %', rate: 0.401 },
-      { label: 'Spitzenverdiener Z\u00fcrich \u2248 44.6 %', rate: 0.446 },
-      { label: 'Spitzenverdiener Genf (GE) \u2248 48.5 %', rate: 0.485 },
-      { label: 'Spitzenverdiener Waadt (VD) \u2248 51.8 %', rate: 0.518 }
+      { label: 'Bund + Sozialabgaben, mittleres Einkommen \u2248 13.0 %', labelEn: 'Federal + social contributions, middle income \u2248 13.0%', rate: 0.13 },
+      { label: 'Bund + Sozialabgaben, Spitzenverdiener \u2248 16.8 %', labelEn: 'Federal + social contributions, top earner \u2248 16.8%', rate: 0.168 },
+      { label: 'Z\u00fcrich Stadt, ~CHF 100k steuerbar \u2248 32.3 %', labelEn: 'Zurich City, ~CHF 100k taxable \u2248 32.3%', rate: 0.323, selected: true },
+      { label: 'Gen\u00e8ve Ville, ~CHF 100k \u2248 38.0 %', labelEn: 'Geneva (city), ~CHF 100k \u2248 38.0%', rate: 0.38 },
+      { label: 'Lausanne / VD, ~CHF 100k \u2248 40.1 %', labelEn: 'Lausanne / VD, ~CHF 100k \u2248 40.1%', rate: 0.401 },
+      { label: 'Spitzenverdiener Z\u00fcrich \u2248 44.6 %', labelEn: 'Top earner Zurich \u2248 44.6%', rate: 0.446 },
+      { label: 'Spitzenverdiener Genf (GE) \u2248 48.5 %', labelEn: 'Top earner Geneva (GE) \u2248 48.5%', rate: 0.485 },
+      { label: 'Spitzenverdiener Waadt (VD) \u2248 51.8 %', labelEn: 'Top earner Vaud (VD) \u2248 51.8%', rate: 0.518 }
     ],
     panels: {
       alcohol: { cats: [{ v: 'beer', t: 'Bier' }, { v: 'wine', t: 'Wein' }, { v: 'spirit', t: 'Spirituosen (>15 % vol)' }], draught: false, plato: true },
@@ -51,36 +52,38 @@
     },
     computeDuties(state, cfg) {
       const p = state.panel, kind = state.kind, price = state.price;
+      const en = state.lang === 'en';
       const out = [];
       if (kind === 'alcohol') {
         const ml = num(p.ml), hl = ml / 100000;
         if (p.cat === 'beer') {
           const plato = num(p.plato);
           const rate = plato <= 10 ? 16.88 : plato <= 14 ? 25.32 : 33.76;
-          out.push({ label: `Biersteuer (${plato.toFixed(1)} \u00b0Plato, CHF ${rate.toFixed(2)}/hl)`, v: hl * rate });
+          out.push({ label: en ? `Beer tax (${plato.toFixed(1)} \u00b0Plato, CHF ${rate.toFixed(2)}/hl)` : `Biersteuer (${plato.toFixed(1)} \u00b0Plato, CHF ${rate.toFixed(2)}/hl)`, v: hl * rate });
         } else if (p.cat === 'spirit') {
           const lpa = ml / 1000 * num(p.abv) / 100;
-          out.push({ label: `Alkoholsteuer (${lpa.toFixed(2)} L reiner Alkohol)`, v: lpa * 29 });
+          out.push({ label: en ? `Alcohol tax (${lpa.toFixed(2)} L pure alcohol)` : `Alkoholsteuer (${lpa.toFixed(2)} L reiner Alkohol)`, v: lpa * 29 });
         }
         // Wein: keine Bundessteuer (Hinweis über Preset-noDutyLabel)
       } else if (kind === 'cigs') {
         const n = num(p.sticks);
         if (n > 0) {
-          out.push({ label: 'Tabaksteuer (fest)', v: 118.32 * n / 1000 });
-          out.push({ label: 'Tabaksteuer 25 % des Preises', v: 0.25 * price });
+          out.push({ label: en ? 'Tobacco tax (fixed)' : 'Tabaksteuer (fest)', v: 118.32 * n / 1000 });
+          out.push({ label: en ? 'Tobacco tax 25% of price' : 'Tabaksteuer 25 % des Preises', v: 0.25 * price });
         }
       } else if (kind === 'fuel') {
         const rate = p.fueltype === 'diesel' ? 0.7957 : 0.7682;
-        out.push({ label: `Mineral\u00f6lsteuer ${p.fueltype === 'diesel' ? 'Diesel' : 'Benzin'}`, v: num(p.litres) * rate });
+        out.push({ label: en ? `Mineral oil tax ${p.fueltype === 'diesel' ? 'diesel' : 'petrol'}` : `Mineral\u00f6lsteuer ${p.fueltype === 'diesel' ? 'Diesel' : 'Benzin'}`, v: num(p.litres) * rate });
       } else if (kind === 'custom') {
         const f = num(p.cfix), pc = num(p.cpct) / 100;
-        if (f) out.push({ label: 'Feste Abgabe', v: f });
-        if (pc) out.push({ label: `Abgabe ${(pc * 100).toFixed(1)} % des Preises`, v: pc * price });
+        if (f) out.push({ label: en ? 'Fixed levy' : 'Feste Abgabe', v: f });
+        if (pc) out.push({ label: en ? `Levy ${(pc * 100).toFixed(1)}% of price` : `Abgabe ${(pc * 100).toFixed(1)} % des Preises`, v: pc * price });
       }
       return out;
     },
     copy: {
       lang: 'de-CH',
+      langLabel: 'Sprache',
       docTitle: 'Was zahle ich wirklich?',
       title: 'Was zahle ich wirklich?',
       lede: 'Was du wirklich zahlst, ist der Bruttolohn, den du verdienen musst, um etwas zu kaufen. Was es kosten k\u00f6nnte, ist der Preis ohne Bundesabgaben, ohne MWST und ohne Einkommenssteuer auf dein Geld.',
@@ -133,6 +136,63 @@
         taxPrefix: 'Einkommens- und Sozialabgaben',
         grossLine: 'Was du wirklich zahlst',
         legendUnder: 'Verk\u00e4ufer', legendDuty: 'Bundesabgaben', legendVat: 'MWST', legendTax: 'Einkommenssteuer'
+      }
+    },
+    copyEn: {
+      lang: 'en',
+      langLabel: 'Language',
+      docTitle: 'What am I actually paying?',
+      title: 'What am I actually paying?',
+      lede: 'What you really pay is the gross wage you earn to buy something. What it could cost is the price without federal duties, without VAT and without income tax on your money.',
+      countryLabel: 'Country',
+      itemLabel: 'Product',
+      priceLabel: 'Price in the shop / bar',
+      priceHint: 'Defaults are typical prices (Autumn 2026). Enter what you actually paid.',
+      vatLabel: 'VAT rate',
+      vatOptions: [
+        { v: 0.081, t: 'Standard, 8.1%', selected: true },
+        { v: 0.026, t: 'Reduced, 2.6% (food, books)' },
+        { v: 0.038, t: 'Accommodation, 3.8% (hotels)' },
+        { v: 0, t: '0% (exports)' }
+      ],
+      dutyTitle: 'Federal duties',
+      taxTitle: 'Your tax',
+      taxLabel: 'Marginal rate on your next franc',
+      taxHint: 'Federal tax, AHV/IV/EO, ALV and cantonal/municipal taxes (estimates, 2026). Excludes BVG, NBU, church and wealth tax. Custom for your own situation.',
+      customRateLabel: 'Own marginal rate (%)',
+      customBandLabel: 'Custom',
+      noDuty: 'No federal duty on this item',
+      ratesPending: '',
+      vatLine: vr => `Minus VAT (${(vr * 100).toFixed(1).replace(/\.0$/, '')}%)`,
+      taxLine: m => `Plus income and social contributions (${WAIP.pctRate(m)}%)`,
+      mult: r => `You really pay <b>${r.toFixed(2)}\u00d7</b> what it could cost`,
+      take: res => `Of the <b>${WAIP.formatMoney({ currency: { symbol: 'CHF ' } }, res.gross)}</b> you earn to buy this, <b>${WAIP.formatMoney({ currency: { symbol: 'CHF ' } }, res.govt)}</b> (${(res.govt / res.gross * 100).toFixed(0)}%) goes to the state: <b>${WAIP.formatMoney({ currency: { symbol: 'CHF ' } }, res.itax)}</b> income tax, <b>${WAIP.formatMoney({ currency: { symbol: 'CHF ' } }, res.vat)}</b> VAT and <b>${WAIP.formatMoney({ currency: { symbol: 'CHF ' } }, res.duty)}</b> federal duties.`,
+      warnNeg: 'Duties and VAT together exceed the price. The price may be too low for this item, or it is sold at a loss.',
+      notesTitle: 'Rates used (CH, 2026)',
+      notesCaveatsTitle: 'What this does not show',
+      notesRates: 'VAT 8.1% (standard), 2.6% (reduced), 3.8% (accommodation), 0% (exports). Beer duty flat per hl by original wort: \u2264 10.0°P CHF 16.88; 10.1\u201314.0°P CHF 25.32; > 14.0°P CHF 33.76 (small breweries up to \u221240%). Alcohol tax CHF 29 per litre of pure alcohol. Tobacco tax CHF 118.32 per 1,000 + 25% of the retail price. Mineral oil tax petrol 76.82 Rp/l, diesel 79.57 Rp/l (incl. NAF). Sources: ESTV, BAZG, BAFU (October 2026).',
+      notesCaveats: 'The VAT increase to 8.5% (13th AHV) is only a referendum proposal, not in force. Wine is not subject to a federal duty (cantonal levies possible). The CO2 levy (CHF 120/t) applies to heating fuels only. BVG/2nd pillar and NBU premiums are not included; the ALV contribution is capped at CHF 148,200. Fuel prices are at record levels (Sept/Oct 2026); all prices are snapshots.',
+      credit: 'Modular rebuild of the UK \u201cWhat am I actually paying?\u201d concept.',
+      panels: {
+        alcohol: { cat: 'Drink type', ml: 'Volume (ml)', plato: 'Original wort (\u00b0Plato)', abv: 'Alcohol (% vol)', hint: 'Beer: federal duty flat per hectolitre by original wort (\u00b0Plato). Wine: no federal duty.' },
+        drinks: { ml: 'Volume (ml)', band: 'Type' },
+        cigs: { sticks: 'Number of cigarettes' },
+        fuel: { litres: 'Litres', type: 'Fuel' },
+        energy: { kwh: 'Electricity (kWh)', m3: 'Gas (m\u00b3)' },
+        custom: { fix: 'Fixed levy (CHF)', pct: 'Levy as % of price' },
+        vape: { ml: 'Liquid (ml)' }
+      },
+      receipt: {
+        sub: 'True cost breakdown',
+        hReal: 'What you really pay', hRealD: 'Gross wages earned to buy it',
+        hCould: 'What it could cost', hCouldD: 'Price without federal duties, VAT and income tax',
+        priceLine: 'Price in the shop',
+        dutyLine: 'Minus federal duties',
+        underLine: 'What it could cost',
+        underSub: 'Price minus VAT and federal duties',
+        taxPrefix: 'Income and social contributions',
+        grossLine: 'What you really pay',
+        legendUnder: 'Seller', legendDuty: 'Federal duties', legendVat: 'VAT', legendTax: 'Income tax'
       }
     }
   });
