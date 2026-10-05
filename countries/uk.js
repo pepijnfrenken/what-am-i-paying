@@ -146,6 +146,19 @@
       showAllHide: 'Hide',
       compare: { item: 'Item', price: 'Price', could: 'What it could cost', real: 'What it really costs', govt: '% to the government' },
       tabs: { receipt: 'Receipt', where: 'Where does my money go?' },
+      infoAria: 'More information',
+      info: {
+        wedge: 'The gross wage you need to earn to buy this: ticket price divided by (1 \u2212 marginal rate). The rate is the band you picked \u2014 an approximation for all of your income.',
+        could: 'In order: excise duties come off the VAT-inclusive price first, then VAT, then income tax on your pay. This is not the shop\u2019s factory price.',
+        multiplier: 'How many times more you earn than the price with all taxes removed.',
+        duty: 'Every levy besides VAT: tobacco duty, alcohol duty, fuel duty, the soft drinks levy and so on. VAT is shown separately on the receipt.',
+        marginal: 'The rate comes from the band you picked and applies to all of your income above the threshold \u2014 an approximation, not a full bracket calculation.',
+        route: 'Tax on this income: UK income tax 2026/27 only \u2014 National Insurance is NOT included (outside this route it would add roughly 8% between \u00a312,570 and \u00a350,270).',
+        baseline: 'What the government spends per person on social security on average (2026). If you pay less tax than that, others cover the rest.',
+        split: 'Your extra tax is distributed proportionally over the budget categories per the published budget. Taxes are not earmarked.',
+        effRate: 'The effective percentage is tax divided by gross income \u2014 not the marginal rate of your top band.',
+        compare: 'Every item at its default values with the selected marginal rate: ticket price, what it could cost, what it really costs, and the share that goes to the government.'
+      },
       wheregoes: {
         input: 'Gross yearly income (\u2248 taxable income)',
         taxLabel: 'Your income tax per year',

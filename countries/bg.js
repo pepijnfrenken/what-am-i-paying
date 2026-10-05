@@ -133,6 +133,19 @@
       showAllHide: 'Скрий',
       compare: { item: 'Продукт', price: 'Цена', could: 'Какво би могло да струва', real: 'Какво наистина струва', govt: '% за държавата' },
       tabs: { receipt: 'Касов бон', where: 'Къде отива данъкът ми?' },
+      infoAria: 'Повече информация',
+      info: {
+        wedge: 'Брутната заплата, която трябва да изкараш, за да го купиш: цената, разделена на (1 \u2212 гранична ставка). Ставката е избраната група \u2014 приближение за целия ти доход.',
+        could: 'Последователно: първо акцизите (върху цената с ДДС), после ДДС, после данъкът върху дохода. Това не е покупната цена на магазина.',
+        multiplier: 'Колко пъти повече изкарваш от цената без всички данъци.',
+        duty: 'Всички такси освен ДДС: акцизи върху бира, тютюн, горива и енергия и др. ДДС е показан отделно.',
+        marginal: 'Ставката идва от избраната група и важи за целия ти доход над прага \u2014 приближение, не пълно изчисление по групи.',
+        route: 'Данък върху дохода: ДОД 2026 = 10% върху (бруто \u2212 осигуровки 13,78%, с таван \u20ac 2.300/мес).',
+        baseline: 'Какво средно харчи държавата на човек за социално осигуряване (2026). Ако плащаш по-малко, останалото го плащат другите.',
+        split: 'Допълнителният ти данък се разпределя пропорционално по бюджетните пера според публикувания бюджет. Данъците не са целеви.',
+        effRate: 'Ефективният процент е данък, разделен на брутния доход \u2014 не граничната ставка на най-високата ти група.',
+        compare: 'Всички продукти със стандартните им стойности при избраната гранична ставка: цена, какво би могло да струва, какво наистина струва и делът за държавата.'
+      },
       wheregoes: {
         input: 'Брутна годишна заплата (\u2248 облагаем доход)',
         taxLabel: 'Твоят данък върху дохода годишно',
@@ -212,6 +225,19 @@
       showAllHide: 'Hide',
       compare: { item: 'Item', price: 'Price', could: 'What it could cost', real: 'What it really costs', govt: '% to the government' },
       tabs: { receipt: 'Receipt', where: 'Where does my money go?' },
+      infoAria: 'More information',
+      info: {
+        wedge: 'The gross wage you need to earn to buy this: ticket price divided by (1 \u2212 marginal rate). The rate is the band you picked \u2014 an approximation for all of your income.',
+        could: 'In order: excise duties come off the VAT-inclusive price first, then VAT, then income tax on your pay. This is not the shop\u2019s purchase price.',
+        multiplier: 'How many times more you earn than the price with all taxes removed.',
+        duty: 'Every levy besides VAT: excise on beer, tobacco, fuel and energy and so on. VAT is shown separately.',
+        marginal: 'The rate comes from the band you picked and applies to all of your income above the threshold \u2014 an approximation, not a full bracket calculation.',
+        route: 'Tax on this income: Bulgarian \u0414\u041e\u0414 (personal income tax) 2026 = 10% of gross minus employee contributions (13.78%, capped at \u20ac 2,300/month).',
+        baseline: 'What the government spends per person on social security on average (2026). If you pay less tax than that, others cover the rest.',
+        split: 'Your extra tax is distributed proportionally over the budget categories per the published budget. Taxes are not earmarked.',
+        effRate: 'The effective percentage is tax divided by gross income \u2014 not the marginal rate of your top band.',
+        compare: 'Every item at its default values with the selected marginal rate: price, what it could cost, what it really costs, and the share that goes to the government.'
+      },
       wheregoes: {
         input: 'Gross yearly income (\u2248 taxable income)',
         taxLabel: 'Your income tax per year',

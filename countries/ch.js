@@ -141,6 +141,19 @@
       showAllHide: 'Ausblenden',
       compare: { item: 'Produkt', price: 'Preis', could: 'Was es kosten k\u00f6nnte', real: 'Was es wirklich kostet', govt: '% an den Staat' },
       tabs: { receipt: 'Kassenbon', where: 'Wohin geht mein Geld?' },
+      infoAria: 'Weitere Informationen',
+      info: {
+        wedge: 'Der Bruttolohn, den du verdienen musst, um das zu kaufen: Preis geteilt durch (1 \u2212 Grenzsatz). Der Satz stammt aus der gew\u00e4hlten Stufe \u2014 eine N\u00e4herung f\u00fcr dein ganzes Einkommen.',
+        could: 'Der Reihe nach: zuerst die Bundesabgaben (auf den Preis inkl. MWST), dann die MWST, dann die Einkommenssteuer auf dein Geld. Das ist kein Einkaufspreis.',
+        multiplier: 'Wie viel Mal mehr du verdienst als der Preis ohne s\u00e4mtliche Steuern.',
+        duty: 'Alle Abgaben neben der MWST: Biersteuer, Tabaksteuer, Mineral\u00f6lsteuer usw. Die MWST steht separat.',
+        marginal: 'Der Satz stammt aus der gew\u00e4hlten Stufe und gilt f\u00fcr dein gesamtes Einkommen \u00fcber der Schwelle \u2014 eine N\u00e4herung, keine vollst\u00e4ndige Stufenrechnung.',
+        route: 'Steuer auf dieses Einkommen: direkte Bundessteuer 2026 (Tarif 58c, ledig) \u2014 nur der Bund; Kantons- und Gemeindesteuern fehlen.',
+        baseline: 'Was der Bund durchschnittlich pro Person f\u00fcr Sozialversicherungen ausgibt (2026). Zahlst du weniger Steuern, zahlen andere den Rest.',
+        split: 'Dein Zusatzbeitrag wird proportional \u00fcber die Budgetposten des publizierten Bundesvoranschlags verteilt. Steuern sind nicht zweckgebunden.',
+        effRate: 'Der effektive Satz ist Steuer geteilt durch Bruttoeinkommen \u2014 nicht der Grenzsatz deiner obersten Stufe.',
+        compare: 'Alle Produkte mit ihren Standardwerten beim gew\u00e4hlten Grenzsatz: Preis, was es kosten k\u00f6nnte, was es wirklich kostet und der Anteil an den Staat.'
+      },
       wheregoes: {
         input: 'Bruttojahreslohn (\u2248 steuerbares Einkommen)',
         taxLabel: 'Deine Einkommenssteuer pro Jahr',
@@ -221,6 +234,19 @@
       showAllHide: 'Hide',
       compare: { item: 'Item', price: 'Price', could: 'What it could cost', real: 'What it really costs', govt: '% to the government' },
       tabs: { receipt: 'Receipt', where: 'Where does my money go?' },
+      infoAria: 'More information',
+      info: {
+        wedge: 'The gross wage you need to earn to buy this: ticket price divided by (1 \u2212 marginal rate). The rate is the band you picked \u2014 an approximation for all of your income.',
+        could: 'In order: federal duties come off the VAT-inclusive price first, then VAT, then income tax on your pay. This is not the shop\u2019s purchase price.',
+        multiplier: 'How many times more you earn than the price with all taxes removed.',
+        duty: 'Every levy besides VAT: beer tax, tobacco tax, mineral oil tax and so on. VAT is shown separately.',
+        marginal: 'The rate comes from the band you picked and applies to all of your income above the threshold \u2014 an approximation, not a full bracket calculation.',
+        route: 'Tax on this income: Swiss federal direct tax 2026 (single-person tariff) \u2014 federal only; cantonal and municipal taxes are not included.',
+        baseline: 'What the federal government spends per person on social security on average (2026). If you pay less tax than that, others cover the rest.',
+        split: 'Your extra contribution is distributed proportionally over the budget categories of the published federal budget. Taxes are not earmarked.',
+        effRate: 'The effective rate is tax divided by gross income \u2014 not the marginal rate of your top band.',
+        compare: 'Every item at its default values with the selected marginal rate: price, what it could cost, what it really costs, and the share that goes to the state.'
+      },
       wheregoes: {
         input: 'Gross yearly income (\u2248 taxable income)',
         taxLabel: 'Your income tax per year',

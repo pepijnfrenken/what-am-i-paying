@@ -285,6 +285,11 @@
       $('notes-caveats-title').textContent = C.notesCaveatsTitle;
       $('tab-receipt').textContent = C.tabs.receipt;
       $('tab-where').textContent = C.tabs.where;
+      const aria = C.infoAria || 'More info';
+      document.querySelectorAll('button.info').forEach(b => {
+        b.textContent = 'i';
+        b.setAttribute('aria-label', aria);
+      });
     }
     function buildLangOptions() {
       langSel.innerHTML = '';
@@ -450,6 +455,56 @@
         $('wg-tax').value = String(Math.round(WAIP.incomeTax(cfg, $('wg-income').value)));
       }
       renderWhere();
+    });
+
+    // ------------------------------------------------ info popovers (one impl)
+    // Any <button class="info" data-info="key"> opens a popover with
+    // labelCopy(cfg).info[key]. Opens on click/tap AND keyboard focus (never
+    // hover); closes on Escape, click-away, or a second click on the trigger.
+    const infoPop = $('info-pop');
+    let infoOpen = false, infoTrigger = null, infoPointer = false;
+    function openInfo(b) {
+      const C = labelCopy(cfg);
+      const txt = C.info && C.info[b.dataset.info];
+      if (!txt) return;
+      closeInfo();
+      infoPop.textContent = txt;
+      infoPop.hidden = false;
+      const r = b.getBoundingClientRect();
+      const pw = 320;
+      infoPop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - pw - 8)) + 'px';
+      infoPop.style.top = (r.bottom + 8) + 'px';
+      infoTrigger = b;
+      infoOpen = true;
+      b.setAttribute('aria-expanded', 'true');
+    }
+    function closeInfo() {
+      if (infoTrigger) infoTrigger.setAttribute('aria-expanded', 'false');
+      infoOpen = false;
+      infoTrigger = null;
+      infoPop.hidden = true;
+    }
+    document.addEventListener('pointerdown', e => {
+      if (e.target.closest && e.target.closest('button.info')) {
+        infoPointer = true;
+        setTimeout(() => { infoPointer = false; }, 0);
+      }
+    });
+    document.addEventListener('focusin', e => {
+      const b = e.target.closest && e.target.closest('button.info');
+      if (b && !infoPointer && b !== infoTrigger) openInfo(b);
+    });
+    document.addEventListener('click', e => {
+      const b = e.target.closest && e.target.closest('button.info');
+      if (b) {
+        if (infoTrigger === b && infoOpen) closeInfo();
+        else openInfo(b);
+        return;
+      }
+      if (infoOpen && !infoPop.contains(e.target)) closeInfo();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && infoOpen) closeInfo();
     });
 
     csel.addEventListener('change', () => switchCountry(csel.value));

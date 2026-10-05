@@ -107,6 +107,17 @@ table.compare{width:100%;min-width:560px;border-collapse:collapse;background:var
 .wg-row .num{font-family:var(--mono)}
 .wg-row .pct{color:var(--muted);white-space:nowrap}
 .wg-sources,.wg-scope,.wg-disclaimer{font-size:.78rem;color:var(--muted);margin:10px 0 0;max-width:78ch}
+.info{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--muted);font-size:.7rem;font-weight:700;line-height:1;cursor:pointer;padding:0;margin-left:6px;vertical-align:middle;flex:none}
+.info:hover,.info[aria-expanded="true"]{border-color:var(--rule);color:var(--strong)}
+.info-pop{position:fixed;z-index:40;max-width:320px;background:var(--paper);border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 22px -8px rgba(20,30,40,.35);color:var(--ink);font-size:.82rem;line-height:1.45;padding:10px 12px}
+.mult-line{display:flex;gap:4px;align-items:flex-start;justify-content:center;margin:0 0 6px}
+.mult-line .mult{margin:0}
+.band-lab{display:flex;align-items:center;gap:6px}
+.wg-route-line{display:flex;gap:6px;align-items:flex-start;margin:12px 0 0}
+.wg-route-line .wg-route{margin:0}
+.wg-legend-line{display:flex;align-items:center;gap:6px;margin:16px 0 6px}
+.wg-legend-line .wg-legend-title{margin:0}
+.showall-head{display:flex;gap:10px;align-items:center}
 </style>
 </head>
 <body>
@@ -150,7 +161,7 @@ table.compare{width:100%;min-width:560px;border-collapse:collapse;background:var
 
       <div class="group-title" id="tax-title">Jouw belasting</div>
       <div class="field">
-        <label for="band-tax" id="tax-label"></label>
+        <label for="band-tax" class="band-lab"><span id="tax-label"></span><button class="info" type="button" data-info="marginal"></button></label>
         <select id="band-tax"></select>
         <div class="hint" id="tax-hint"></div>
       </div>
@@ -164,14 +175,14 @@ table.compare{width:100%;min-width:560px;border-collapse:collapse;background:var
       <div class="receipt">
         <div class="r-head"><strong id="r-item"></strong><small id="r-sub"></small></div>
         <div class="heroes">
-          <div class="hero real"><span class="k" id="r-head-real-label"></span><span class="v" id="h-real"></span><span class="d" id="h-real-d"></span></div>
-          <div class="hero"><span class="k" id="r-head-could-label"></span><span class="v" id="h-could"></span><span class="d" id="h-could-d"></span></div>
+          <div class="hero real"><span class="k"><span id="r-head-real-label"></span><button class="info" type="button" data-info="wedge"></button></span><span class="v" id="h-real"></span><span class="d" id="h-real-d"></span></div>
+          <div class="hero"><span class="k"><span id="r-head-could-label"></span><button class="info" type="button" data-info="could"></button></span><span class="v" id="h-could"></span><span class="d" id="h-could-d"></span></div>
         </div>
-        <p class="mult" id="mult"></p>
+        <div class="mult-line"><p class="mult" id="mult"></p><button class="info" type="button" data-info="multiplier"></button></div>
         <hr class="rule">
         <div class="line total"><span id="r-head-price"></span><span id="r-price"></span></div>
         <div class="line"><span class="lbl"><i class="sw" style="background:var(--c-vat)"></i><span id="r-vat-l"></span></span><span class="neg" id="r-vat"></span></div>
-        <div class="line"><span class="lbl"><i class="sw" style="background:var(--c-duty)"></i><span id="r-head-duty"></span></span><span class="neg" id="r-duty"></span></div>
+        <div class="line"><span class="lbl"><i class="sw" style="background:var(--c-duty)"></i><span id="r-head-duty"></span><button class="info" type="button" data-info="duty"></button></span><span class="neg" id="r-duty"></span></div>
         <div id="r-duty-subs"></div>
         <hr class="rule">
         <div class="line big"><span class="lbl"><i class="sw" style="background:var(--c-under)"></i><span id="r-head-under"></span></span><span id="r-under"></span></div>
@@ -199,7 +210,7 @@ table.compare{width:100%;min-width:560px;border-collapse:collapse;background:var
   </div>
 
   <div class="showall-wrap">
-    <button id="show-all" type="button" hidden></button>
+    <div class="showall-head"><button id="show-all" type="button" hidden></button><button class="info" type="button" data-info="compare"></button></div>
     <div id="compare" hidden></div>
   </div>
 
@@ -224,12 +235,12 @@ table.compare{width:100%;min-width:560px;border-collapse:collapse;background:var
         <label for="wg-tax" id="wg-tax-label"></label>
         <input id="wg-tax" type="number" min="0" step="100" inputmode="numeric">
       </div>
-      <p class="wg-route" id="wg-route"></p>
+      <div class="wg-route-line"><p class="wg-route" id="wg-route"></p><button class="info" type="button" data-info="route"></button><button class="info" type="button" data-info="effRate"></button></div>
       <div id="wg-below" hidden>
         <div class="wg-bar"><div class="wg-fill" id="wg-fill"></div><div class="wg-marker"></div></div>
         <div class="wg-block-labels">
           <span id="wg-fill-label"></span>
-          <span id="wg-baseline-label"></span>
+          <span><span id="wg-baseline-label"></span><button class="info" type="button" data-info="baseline"></button></span>
         </div>
         <p class="wg-note" id="wg-below-text"></p>
       </div>
@@ -239,10 +250,10 @@ table.compare{width:100%;min-width:560px;border-collapse:collapse;background:var
           <div class="wg-block" id="wg-block-extra"></div>
         </div>
         <div class="wg-block-labels">
-          <span id="wg-social-label"></span>
+          <span><span id="wg-social-label"></span><button class="info" type="button" data-info="baseline"></button></span>
           <span id="wg-extra-label"></span>
         </div>
-        <h3 class="wg-legend-title" id="wg-legend-title"></h3>
+        <div class="wg-legend-line"><h3 class="wg-legend-title" id="wg-legend-title"></h3><button class="info" type="button" data-info="split"></button></div>
         <div class="wg-rows" id="wg-rows"></div>
       </div>
       <p class="wg-sources" id="wg-sources"></p>
@@ -250,6 +261,8 @@ table.compare{width:100%;min-width:560px;border-collapse:collapse;background:var
       <p class="wg-disclaimer" id="wg-disclaimer"></p>
     </div>
   </section>
+
+  <div id="info-pop" class="info-pop" role="tooltip" hidden></div>
 </main>
 
 <script src="core.js"></script>
