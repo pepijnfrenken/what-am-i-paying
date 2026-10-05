@@ -74,16 +74,7 @@ for (const [key, preset] of Object.entries(uk.presets)) {
   console.log(`anchor: pint 5.80 -> duty ${got.duty.toFixed(6)} (expected ${expDuty.toFixed(6)}) ${ok ? 'ok' : 'FAIL'}`);
   if (!ok) fails++;
 }
-// NL module sanity (rates pending): must not throw and wage math must be generic
-{
-  const nlMod = read('../countries/nl.js');
-  eval(nlMod);
-  const nl = WAIP.countries.nl;
-  const got = WAIP.compute(nl, { price: 3.50, vatRate: 0.21, marginal: 0.3756, kind: 'alcohol', panel: { cat: 'beer', ml: 250, abv: 4.8 } });
-  const ok = Math.abs(got.gross - 3.50 / (1 - 0.3756)) < 1e-9 && got.duty === 0; // duty pending research
-  console.log(`nl sanity: pint 3.50 -> gross ${got.gross.toFixed(6)}, duty ${got.duty} (pending) ${ok ? 'ok' : 'FAIL'}`);
-  if (!ok) fails++;
-}
+// NL module is covered by test/nl_check.mjs (sourced 2026 duty rates).
 
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);
 process.exit(fails === 0 ? 0 : 1);
