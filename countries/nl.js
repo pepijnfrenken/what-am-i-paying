@@ -39,6 +39,21 @@
     langNative: 'Nederlands',
     currency: { symbol: '\u20ac', decimals: 2, decimalComma: true },
     rates: RATES,
+    // Rijksbegroting 2026 (miljoenen), zie where-goes-2026.md
+    budget: {
+      social: 124700, population: 18130208,
+      cats: {
+        zorg: { v: 119500, label: 'Zorg', labelEn: 'Health care' },
+        gemeenten: { v: 56600, label: 'Gemeenten & provincies (via fondsen)', labelEn: 'Local government (via funds)' },
+        onderwijs: { v: 54800, label: 'Onderwijs, cultuur & wetenschap', labelEn: 'Education, culture & science' },
+        defensie: { v: 34500, label: 'Defensie', labelEn: 'Defence' },
+        justitie: { v: 16800, label: 'Justitie & veiligheid', labelEn: 'Police & justice' },
+        buitenland: { v: 15500, label: 'Buitenlandse Zaken & ontwikkelingshulp', labelEn: 'Foreign affairs & development' },
+        infra: { v: 14900, label: 'Infrastructuur & waterstaat', labelEn: 'Infrastructure & water' },
+        rente: { v: 9500, label: 'Rentelasten staatsschuld', labelEn: 'Debt interest' },
+        overig: { v: 39600, label: 'Overig (asiel, wonen, landbouw, klimaat, \u2026)', labelEn: 'Other (asylum, housing, farming, climate, \u2026)' }
+      }
+    },
     presets: {
       pint:    { name: 'Glas pils in de kroeg (25cl, 4,8%)', nameEn: 'Pils in a pub (25 cl, 4.8%)', price: 3.35, vat: 0.21, kind: 'alcohol', panel: { cat: 'beer', ml: 250, abv: 4.8 } },
       krat:    { name: 'Krat pils, supermarkt (24 \u00d7 30cl, 4,8%)', nameEn: 'Crate of pils, supermarket (24 \u00d7 30 cl, 4.8%)', price: 19.99, vat: 0.21, kind: 'alcohol', panel: { cat: 'beer', ml: 7200, abv: 4.8 } },
@@ -149,6 +164,20 @@
       showAll: 'Toon alles',
       showAllHide: 'Verberg',
       compare: { item: 'Product', price: 'Prijs', could: 'Wat het kon kosten', real: 'Wat het \u00e9cht kost', govt: '% naar de overheid' },
+      tabs: { receipt: 'Rekening', where: 'Waar gaat mijn geld heen?' },
+      wheregoes: {
+        input: 'Jouw inkomstenbelasting per jaar',
+        yourLabel: 'Jouw belasting',
+        baselineName: 'Wat je kost (per persoon)',
+        socialBlock: 'Wat je zelf kost (sociale zekerheid)',
+        extraBlock: 'Wat je extra bijdraagt',
+        belowText: 'Je betaalt minder dan je kost \u2014 de rest betalen anderen',
+        legendTitle: 'Wat je extra bijdrage financiert (verdeling over de begroting)',
+        pctOfExtra: 'van de extra bijdrage',
+        sources: 'Bron: Miljoenennota 2026 + bijlagen Tabel 1.2 (rijksfinancien.nl/miljoenennota/2026/bijlage); CBS StatLine 85644NED; bevolking 18.130.208 (1-1-2026).',
+        scope: 'Rijksbegroting 2026 \u2014 Rijk inclusief sociale fondsen; per inwoner.',
+        disclaimer: 'Belastingen zijn niet geoormerkt; deze verdeling volgt de gepubliceerde begroting.'
+      },
       noDuty: 'Geen op dit product',
       ratesPending: 'Tarieven worden op dit moment geverifieerd en ingevuld.',
       vatLine: vr => `Min btw (${(vr * 100).toFixed(0)}%)`,
@@ -209,6 +238,20 @@
       showAll: 'Show all',
       showAllHide: 'Hide',
       compare: { item: 'Item', price: 'Price', could: 'What it could cost', real: 'What it really costs', govt: '% to the government' },
+      tabs: { receipt: 'Receipt', where: 'Where does my money go?' },
+      wheregoes: {
+        input: 'Your income tax per year',
+        yourLabel: 'Your tax',
+        baselineName: 'What you cost (per person)',
+        socialBlock: 'What you cost yourself (social security)',
+        extraBlock: 'What you contribute extra',
+        belowText: 'You pay less than you cost \u2014 others cover the rest',
+        legendTitle: 'What your extra contribution finances (budget split)',
+        pctOfExtra: 'of the extra contribution',
+        sources: 'Source: Miljoenennota 2026 + annex Table 1.2 (rijksfinancien.nl/miljoenennota/2026/bijlage); CBS StatLine 85644NED; population 18,130,208 (1-1-2026).',
+        scope: 'Central government 2026, including social funds; per resident.',
+        disclaimer: 'Taxes are not earmarked; this split follows the published budget.'
+      },
       noDuty: 'None on this item',
       ratesPending: '',
       vatLine: vr => `Minus VAT (${(vr * 100).toFixed(0)}%)`,

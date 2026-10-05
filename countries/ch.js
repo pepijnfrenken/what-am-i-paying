@@ -21,6 +21,19 @@
     ratesStatus: 'ok',
     langNative: 'Deutsch',
     currency: { symbol: 'CHF ', decimals: 2 },
+    // Bundesvoranschlag 2026 (Mio. CHF; nur Bund), see where-goes-2026.md
+    budget: {
+      social: 31823, population: 9127100,
+      cats: {
+        finanzen: { v: 15116, label: 'Finanzen & Steuern (Finanzausgleich, Kantonsanteile, Zinsen)', labelEn: 'Finance & taxes (fiscal equalisation, cantonal shares, interest)' },
+        verkehr: { v: 10734, label: 'Verkehr', labelEn: 'Transport' },
+        bildung: { v: 9000, label: 'Bildung & Forschung', labelEn: 'Education & research' },
+        sicherheit: { v: 7818, label: 'Sicherheit & Verteidigung', labelEn: 'Security & defence' },
+        landwirtschaft: { v: 3710, label: 'Landwirtschaft & Ern\u00e4hrung', labelEn: 'Agriculture & food' },
+        ausland: { v: 3807, label: 'Beziehungen zum Ausland (IZA)', labelEn: 'Foreign relations & cooperation' },
+        uebrige: { v: 9108, label: '\u00dcbrige Aufgabengebiete (Kultur, Gesundheit, Umwelt, Wirtschaft)', labelEn: 'Other task areas (culture, health, environment, economy)' }
+      }
+    },
     presets: {
       bier:      { name: 'Bier 5 dl in der Bar, 12\u00b0P', nameEn: 'Beer 5 dl in a bar, 12°P', price: 7.50, vat: 0.081, kind: 'alcohol', panel: { cat: 'beer', ml: 500, plato: 12 } },
       bier6:     { name: '6er-Pack Bier (6 \u00d7 50 cl, 12\u00b0P)', nameEn: '6-pack of beer (6 \u00d7 50 cl, 12°P)', price: 11.50, vat: 0.081, kind: 'alcohol', panel: { cat: 'beer', ml: 3000, plato: 12 } },
@@ -108,6 +121,20 @@
       showAll: 'Alle anzeigen',
       showAllHide: 'Ausblenden',
       compare: { item: 'Produkt', price: 'Preis', could: 'Was es kosten k\u00f6nnte', real: 'Was es wirklich kostet', govt: '% an den Staat' },
+      tabs: { receipt: 'Kassenbon', where: 'Wohin geht mein Geld?' },
+      wheregoes: {
+        input: 'Deine Einkommenssteuer pro Jahr',
+        yourLabel: 'Deine Steuer',
+        baselineName: 'Was du kostest (pro Person)',
+        socialBlock: 'Was du selbst kostest (Sozialversicherungen)',
+        extraBlock: 'Was du zus\u00e4tzlich beitr\u00e4gst',
+        belowText: 'Du zahlst weniger, als du kostest \u2014 den Rest zahlen andere',
+        legendTitle: 'Was dein Zusatzbeitrag finanziert (Budgetaufteilung)',
+        pctOfExtra: 'des Zusatzbeitrags',
+        sources: 'Quelle: EFV, Voranschlag 2027 mit IAFP 2028\u20132030, Band 1 (Spalte VA 2026); efv.admin.ch budget 2026; BFS Bevölkerung 9.127.100 (31-12-2025).',
+        scope: 'Nur der Bundesvoranschlag 2026 \u2014 Kantone und Gemeinden tragen rund zwei Drittel der gesamten Staatsausgaben und sind hier nicht enthalten.',
+        disclaimer: 'Steuern sind nicht zweckgebunden; diese Aufteilung folgt dem publizierten Budget.'
+      },
       noDuty: 'Keine Bundesabgabe auf dieses Produkt',
       ratesPending: '',
       vatLine: vr => `Minus MWST (${(vr * 100).toFixed(1).replace(/\.0$/, '')}%)`,
@@ -168,6 +195,20 @@
       showAll: 'Show all',
       showAllHide: 'Hide',
       compare: { item: 'Item', price: 'Price', could: 'What it could cost', real: 'What it really costs', govt: '% to the government' },
+      tabs: { receipt: 'Receipt', where: 'Where does my money go?' },
+      wheregoes: {
+        input: 'Your income tax per year',
+        yourLabel: 'Your tax',
+        baselineName: 'What you cost (per person)',
+        socialBlock: 'What you cost yourself (social security)',
+        extraBlock: 'What you contribute extra',
+        belowText: 'You pay less than you cost \u2014 others cover the rest',
+        legendTitle: 'What your extra contribution finances (budget split)',
+        pctOfExtra: 'of the extra contribution',
+        sources: 'Source: EFV Voranschlag 2027 with IAFP 2028\u20132030, Volume 1 (VA 2026 column); efv.admin.ch budget 2026; BFS population 9,127,100 (31-12-2025).',
+        scope: 'Federal budget 2026 only \u2014 cantons and communes run about two thirds of total public spending and are not in this split.',
+        disclaimer: 'Taxes are not earmarked; this split follows the published budget.'
+      },
       noDuty: 'No federal duty on this item',
       ratesPending: '',
       vatLine: vr => `Minus VAT (${(vr * 100).toFixed(1).replace(/\.0$/, '')}%)`,

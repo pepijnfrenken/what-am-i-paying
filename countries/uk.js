@@ -32,6 +32,20 @@
     name: 'United Kingdom',
     ratesStatus: 'ok',
     currency: { symbol: '\u00a3', decimals: 2 },
+    // TME FY2025-26 (€mn → £mn), see where-goes-2026.md
+    budget: {
+      social: 407300, population: 69483900,
+      cats: {
+        health: { v: 257500, label: 'Health (NHS)', labelEn: 'Health (NHS)' },
+        rente: { v: 130300, label: 'Debt interest', labelEn: 'Debt interest' },
+        onderwijs: { v: 125700, label: 'Education', labelEn: 'Education' },
+        economie: { v: 94000, label: 'Transport, economy & science', labelEn: 'Transport, economy & science' },
+        defensie: { v: 65400, label: 'Defence', labelEn: 'Defence' },
+        wonen_milieu: { v: 56800, label: 'Housing, environment & culture', labelEn: 'Housing, environment & culture' },
+        openbare_orde: { v: 55700, label: 'Police & justice', labelEn: 'Police & justice' },
+        bestuur: { v: 35200, label: 'Government administration & foreign affairs', labelEn: 'Government administration & foreign affairs' }
+      }
+    },
     presets: {
       mars:    { name: 'Mars bar (51g)', price: 1.00, vat: 0.20, kind: 'none' },
       cola:    { name: 'Can of cola (330ml)', price: 1.50, vat: 0.20, kind: 'drinks', panel: { dml: 330, dband: 'high' } },
@@ -113,6 +127,20 @@
       showAll: 'Show all',
       showAllHide: 'Hide',
       compare: { item: 'Item', price: 'Price', could: 'What it could cost', real: 'What it really costs', govt: '% to the government' },
+      tabs: { receipt: 'Receipt', where: 'Where does my money go?' },
+      wheregoes: {
+        input: 'Your income tax per year',
+        yourLabel: 'Your tax',
+        baselineName: 'What you cost (per person)',
+        socialBlock: 'What you cost yourself (social security)',
+        extraBlock: 'What you contribute extra',
+        belowText: 'You pay less than you cost \u2014 others cover the rest',
+        legendTitle: 'What your extra contribution finances (budget split)',
+        pctOfExtra: 'of the extra contribution',
+        sources: 'Source: PESA 2026, Chapter 4 Table 4.2 + Chapter 1 Table 1.1 (gov.uk/government/statistics/public-expenditure-statistical-analyses-2026); ONS mid-2025 population 69,483,900.',
+        scope: 'Whole public sector \u2014 Total Managed Expenditure FY2025-26; service spending TES \u00a31,227.6bn (excludes \u00a3132.3bn accounting adjustments).',
+        disclaimer: 'Taxes are not earmarked; this split follows the published budget.'
+      },
       noDuty: 'None on this item',
       ratesPending: '',
       vatLine: vr => `Less VAT (${(vr * 100).toFixed(0)}%)`,

@@ -58,6 +58,27 @@
     return { price, vatRate: vr, vat, dutyLines, duty, under, marginal: m, gross, itax, govt };
   };
 
+  // ---------------------------------------------------------------- comparisons
+  // Pure split for the "where does my money go" view. Rule (where-goes-2026.md):
+  // baseline = social x 1e6 / population; amount below baseline -> gap; at/above
+  // -> extra = amount - baseline distributed over the listed budget categories
+  // (extras_total = sum of all category rows).
+  WAIP.budgetBaseline = function (cfg) {
+    const b = cfg.budget || { social: 0, population: 1 };
+    return b.social * 1e6 / Math.max(1, b.population);
+  };
+  WAIP.budgetSplit = function (cfg, amount) {
+    const b = cfg.budget;
+    if (!b) return { baseline: 0, below: true, gap: 0, extra: 0, rows: [] };
+    const baseline = WAIP.budgetBaseline(cfg);
+    const extrasTotal = Object.values(b.cats).reduce((a, c) => a + c.v, 0) || 1;
+    const a = Math.max(0, WAIP.num(amount));
+    if (a < baseline) return { baseline, below: true, gap: baseline - a, extra: 0, rows: [] };
+    const extra = a - baseline;
+    const rows = Object.entries(b.cats).map(([key, c]) => ({ key, v: extra * c.v / extrasTotal, pct: c.v / extrasTotal }));
+    return { baseline, below: false, gap: 0, extra, rows };
+  };
+
   // ---------------------------------------------------------------- panels
   function inpFull(id, label, attrs) {
     return `<div class="field"><label for="${id}">${label}</label><input id="${id}" type="number" ${attrs || ''}></div>`;
@@ -255,6 +276,8 @@
       $('r-head-gross').textContent = C.receipt.grossLine;
       $('notes-title').textContent = C.notesTitle;
       $('notes-caveats-title').textContent = C.notesCaveatsTitle;
+      $('tab-receipt').textContent = C.tabs.receipt;
+      $('tab-where').textContent = C.tabs.where;
     }
     function buildLangOptions() {
       langSel.innerHTML = '';
@@ -273,6 +296,8 @@
       applyStaticCopy(); loadVat(); loadTaxBands(); loadPresets(); buildLangOptions(); updateShowAllUI();
       $('item').value = cur;
       applyPreset(cur);
+      if (!preserveItem) $('wg-income').value = String(Math.round(WAIP.budgetBaseline(cfg) / 100) * 100);
+      if (wgActive) renderWhere();
     }
     function calc() {
       const st = collectState(cfg);
@@ -341,11 +366,62 @@
       buildCompare();
     });
 
+    // ------------------------------------------------------ where does it go
+    function catName(cfg, key) {
+      const c = cfg.budget && cfg.budget.cats[key];
+      if (!c) return key;
+      return (lang === 'en' && c.labelEn) || c.label;
+    }
+    function renderWhere() {
+      const W = labelCopy(cfg).wheregoes;
+      const f = v => WAIP.formatMoney(cfg, v);
+      $('wg-label').textContent = W.input;
+      $('wg-sources').textContent = W.sources;
+      $('wg-scope').textContent = W.scope;
+      $('wg-disclaimer').textContent = W.disclaimer;
+      const amount = WAIP.num($('wg-income').value);
+      const s = WAIP.budgetSplit(cfg, amount);
+      if (s.below) {
+        $('wg-above').hidden = true;
+        $('wg-below').hidden = false;
+        const w = s.baseline > 0 ? Math.min(100, amount / s.baseline * 100) : 0;
+        $('wg-fill').style.width = w + '%';
+        $('wg-fill-label').textContent = `${W.yourLabel} \u2014 ${f(amount)}`;
+        $('wg-baseline-label').textContent = `${W.baselineName} \u2014 ${f(s.baseline)}`;
+        $('wg-below-text').textContent = W.belowText + ' (' + f(s.gap) + ')';
+      } else {
+        $('wg-below').hidden = true;
+        $('wg-above').hidden = false;
+        $('wg-block-social').style.flexBasis = (s.baseline / amount * 100) + '%';
+        $('wg-block-extra').style.flexBasis = (s.extra / amount * 100) + '%';
+        $('wg-social-label').textContent = `${W.socialBlock} \u2014 ${f(s.baseline)}`;
+        $('wg-extra-label').textContent = `${W.extraBlock} \u2014 ${f(s.extra)}`;
+        $('wg-legend-title').textContent = W.legendTitle;
+        $('wg-rows').innerHTML = s.rows.map(r =>
+          `<div class="wg-row"><span>${catName(cfg, r.key)}</span><span class="num">${f(r.v)}</span><span class="pct">${(r.pct * 100).toFixed(0)}% ${W.pctOfExtra}</span></div>`
+        ).join('');
+      }
+    }
+    let wgActive = false;
+    function switchTab(which) {
+      wgActive = which === 'where';
+      tabReceipt.classList.toggle('active', !wgActive);
+      tabWhere.classList.toggle('active', wgActive);
+      tabReceipt.setAttribute('aria-selected', String(!wgActive));
+      tabWhere.setAttribute('aria-selected', String(wgActive));
+      $('view-receipt').hidden = wgActive;
+      $('view-where').hidden = !wgActive;
+      if (wgActive) renderWhere();
+    }
+    $('tab-receipt').addEventListener('click', () => switchTab('receipt'));
+    $('tab-where').addEventListener('click', () => switchTab('where'));
+    $('wg-income').addEventListener('input', renderWhere);
+
     csel.addEventListener('change', () => switchCountry(csel.value));
     langSel.addEventListener('change', () => { lang = langSel.value; renderCurrent(true); });
     $('item').addEventListener('change', () => applyPreset($('item').value));
     document.querySelectorAll('input,select').forEach(el => {
-      if (el === langSel) return;
+      if (el === langSel || el === $('wg-income')) return;
       el.addEventListener('input', () => { if (el !== csel && el !== $('item')) calc(); });
       el.addEventListener('change', () => { if (el !== csel && el !== $('item')) calc(); });
     });

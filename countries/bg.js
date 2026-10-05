@@ -23,6 +23,21 @@
     ratesStatus: 'ok',
     langNative: 'Български',
     currency: { symbol: '€', decimals: 2, decimalComma: true },
+    // КФП 2026 (млн. €), see where-goes-2026.md
+    budget: {
+      social: 19240.7, population: 6423207,
+      cats: {
+        zdrave: { v: 6664.4, label: 'Здравеопазване', labelEn: 'Health' },
+        ikonomika: { v: 9821.6, label: 'Икономически дейности (транспорт, енергетика, земеделие)', labelEn: 'Economic affairs (transport, energy, farming)' },
+        otbrana: { v: 6460.3, label: 'Отбрана и сигурност (полиция, съд, затвори, ГЗ)', labelEn: 'Defence & security (police, courts, prisons)' },
+        obrazovanie: { v: 5599.7, label: 'Образование', labelEn: 'Education' },
+        administracia: { v: 3000.6, label: 'Общи държавни служби', labelEn: 'Government administration' },
+        jilishta: { v: 2710.8, label: 'Жилища, инфраструктура и околна среда', labelEn: 'Housing, utilities & environment' },
+        kultura: { v: 967.7, label: 'Култура, спорт и религия', labelEn: 'Culture, sport & religion' },
+        lihvi: { v: 1059.2, label: 'Лихви по дълга', labelEn: 'Debt interest' },
+        es: { v: 1282.2, label: 'Вноска в бюджета на ЕС', labelEn: 'EU budget contribution' }
+      }
+    },
     presets: {
       bierBar:   { name: 'Бира в заведение (500 ml, 11°P)', nameEn: 'Beer in a bar (500 ml, 11°P)', price: 4.00, vat: 0.2, kind: 'alcohol', panel: { cat: 'beer', ml: 500, plato: 11 } },
       bierShop:  { name: 'Бира от магазина (500 ml, 11°P)', nameEn: 'Beer from the shop (500 ml, 11°P)', price: 1.00, vat: 0.2, kind: 'alcohol', panel: { cat: 'beer', ml: 500, plato: 11 } },
@@ -104,6 +119,20 @@
       showAll: 'Покажи всичко',
       showAllHide: 'Скрий',
       compare: { item: 'Продукт', price: 'Цена', could: 'Какво би могло да струва', real: 'Какво наистина струва', govt: '% за държавата' },
+      tabs: { receipt: 'Касов бон', where: 'Къде отива данъкът ми?' },
+      wheregoes: {
+        input: 'Твоят данък върху дохода годишно',
+        yourLabel: 'Твоят данък',
+        baselineName: 'Какво струваш (на човек)',
+        socialBlock: 'Какво струваш сам (социално осигуряване)',
+        extraBlock: 'Какво допринасяш допълнително',
+        belowText: 'Плащаш по-малко, отколкото струваш \u2014 останалото го плащат другите',
+        legendTitle: 'Какво финансира допълнителният ти принос (бюджетна разбивка)',
+        pctOfExtra: 'от допълнителния принос',
+        sources: 'Източник: МФ \u2014 АСБП 2026\u20132028, Решение №597 от 6.08.2026 (таблици II-2 + III-1); НСИ, население 6.423.207 (31-12-2025).',
+        scope: 'Консолидирана фискална програма 2026 \u2014 централен бюджет + социални фондове + НЗОК + общини.',
+        disclaimer: 'Данъците не са целеви; тази разбивка следва публикувания бюджет.'
+      },
       noDuty: 'Без акциз върху този продукт',
       ratesPending: '',
       vatLine: vr => `Минус ДДС (${(vr * 100).toFixed(0)}%)`,
@@ -163,6 +192,20 @@
       showAll: 'Show all',
       showAllHide: 'Hide',
       compare: { item: 'Item', price: 'Price', could: 'What it could cost', real: 'What it really costs', govt: '% to the government' },
+      tabs: { receipt: 'Receipt', where: 'Where does my money go?' },
+      wheregoes: {
+        input: 'Your income tax per year',
+        yourLabel: 'Your tax',
+        baselineName: 'What you cost (per person)',
+        socialBlock: 'What you cost yourself (social security)',
+        extraBlock: 'What you contribute extra',
+        belowText: 'You pay less than you cost \u2014 others cover the rest',
+        legendTitle: 'What your extra contribution finances (budget split)',
+        pctOfExtra: 'of the extra contribution',
+        sources: 'Source: MoF \u2014 ACBP 2026\u20132028, Council of Ministers Decision 597 of 6-8-2026 (tables II-2 + III-1); NSI, population 6,423,207 (31-12-2025).',
+        scope: 'Consolidated Fiscal Programme 2026 \u2014 central budget + social funds + NHIF + municipalities.',
+        disclaimer: 'Taxes are not earmarked; this split follows the published budget.'
+      },
       noDuty: 'No excise duty on this item',
       ratesPending: '',
       vatLine: vr => `Minus VAT (${(vr * 100).toFixed(0)}%)`,
