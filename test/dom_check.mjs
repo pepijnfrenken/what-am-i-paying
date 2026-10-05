@@ -326,6 +326,13 @@ async function main() {
   await act(`(() => { const s = document.getElementById('band-tax'); s.value = '0.28'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   snap = await snapshot();
 
+  // vape preset: the duty panel must render (copy.panels.vape) and the
+  // receipt must carry vaping duty £2.20 for 10 ml
+  await act(`(() => { const s = document.getElementById('item'); s.value = 'vape'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('UK: vape preset renders the ml field and £2.20 vaping duty',
+    snap.dutyFieldsHidden === false && snap.panel.vml === '10' && snap.r.duty === '−£2.20' && snap.r.item === 'Vape liquid (10ml)',
+    `vml=${snap.panel.vml} | ${snap.r.item} | ${snap.r.duty}`);
   // Big Mac preset (eat-in, 20% VAT, no duty)
   await act(`(() => { const s = document.getElementById('item'); s.value = 'bigmac'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   snap = await snapshot();

@@ -193,7 +193,8 @@
         cigs: { sticks: 'Number of cigarettes' },
         fuel: { litres: 'Litres' },
         energy: { kwh: 'Electricity (kWh)', m3: 'Gas (m\u00b3)' },
-        custom: { fix: 'Fixed duty (\u00a3)', pct: 'Duty as % of price' }
+        custom: { fix: 'Fixed duty (\u00a3)', pct: 'Duty as % of price' },
+        vape: { ml: 'Liquid (ml)' }
       },
       receipt: {
         sub: 'True cost breakdown',
