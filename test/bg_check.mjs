@@ -115,10 +115,12 @@ check('хлябът е 20 % ДДС (без намалено)', bg.presets.hlyab.
   check('effectief = belasting / bruto (niet marginaal)', close(WAIP.incomeTax(bg, 27600) / 27600, dod(27600) / 27600));
   check('salaryDefault = 27.600 (€2.300/мес plafond)', bg.salaryDefault === 27600, String(bg.salaryDefault));
 }
-// --- EXTERNAL-ANCHOR: платежни фишове (payslip refs) — следваща фаза ----------
+// --- EXTERNAL-ANCHOR: НАП-метод (bulsmetka/nra.bg), plafond 7x2111,64+5x2300 --
+// https://nra.bg (осигурителен доход); https://bulsmetka.bg. Tolerantie ±0,5
+// (afrondingsconventies per loonstrook).
 {
-  const t = WAIP.incomeTax(bg, 27600);
-  check('EXTERNAL-ANCHOR (placeholder): детерминистично и крайно', isFinite(t) && t === WAIP.incomeTax(bg, 27600), `ДОД(27600)=${t.toFixed(2)}`);
+  check('EXTERNAL: ДОД(15.000) = 1.293,30 ±0,5', Math.abs(WAIP.incomeTax(bg, 15000) - 1293.30) <= 0.5, `engine=${WAIP.incomeTax(bg, 15000).toFixed(2)}`);
+  check('EXTERNAL: ДОД(30.000) = 2.637,84 ±0,5', Math.abs(WAIP.incomeTax(bg, 30000) - 2637.84) <= 0.5, `engine=${WAIP.incomeTax(bg, 30000).toFixed(2)}`);
 }
 
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);

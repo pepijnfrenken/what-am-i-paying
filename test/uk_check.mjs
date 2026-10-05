@@ -128,12 +128,19 @@ for (const [key, preset] of Object.entries(uk.presets)) {
   console.log(`anchor: income tax 2026/27 (${anchors.map(([lbl, inc]) => `${lbl}=${WAIP.incomeTax(uk, inc).toFixed(0)}`).join(' ')}) ${fail ? 'FAIL' : 'ok'}`);
   if (fail) fails++;
 }
-// --- EXTERNAL-ANCHOR: payslip reference values arrive next phase --------------
+// --- EXTERNAL-ANCHOR: gov.uk 2026/27 income tax (NI excluded) ----------------
+// https://www.gov.uk/income-tax-rates (verified 2026-10-01); exact.
 {
-  const t = WAIP.incomeTax(uk, 37500);
-  const ok = isFinite(t) && t === WAIP.incomeTax(uk, 37500);
-  console.log(`EXTERNAL-ANCHOR placeholder: deterministic (37500 -> ${t.toFixed(2)}) ${ok ? 'ok' : 'FAIL'}`);
-  if (!ok) fails++;
+  const ext = [['25,000', 25000, 2486.00], ['45,000', 45000, 6486.00], ['110,000', 110000, 33432.00]];
+  let fail = false;
+  for (const [lbl, inc, expect] of ext) {
+    if (!(Math.abs(WAIP.incomeTax(uk, inc) - expect) < 1e-9)) {
+      fail = true;
+      console.log(`  EXTERNAL FAIL: ${lbl} -> engine ${WAIP.incomeTax(uk, inc)}, expected ${expect}`);
+    }
+  }
+  console.log(`EXTERNAL-ANCHOR: gov.uk exact (${ext.map(([lbl, inc]) => `${lbl}=${WAIP.incomeTax(uk, inc).toFixed(0)}`).join(' ')}) ${fail ? 'FAIL' : 'ok'}`);
+  if (fail) fails++;
 }
 // budget split anchors (TME FY2025-26, where-goes-2026.md)
 {

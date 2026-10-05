@@ -156,12 +156,15 @@ check('mineraalwater 330ml -> 0', duty({ price: 0.95, vatRate: 0.21, marginal: 0
   check('effectief tarief = belasting / bruto (niet marginaal)', close(WAIP.incomeTax(nl, 42000) / 42000, loonheffing(42000) / 42000));
   check('salaryDefault = 42.000', nl.salaryDefault === 42000, String(nl.salaryDefault));
 }
-// --- EXTERNAL-ANCHOR: loonstrook-referentiewaarden volgen volgende fase -------
+// --- EXTERNAL-ANCHOR: Cijferbijlage 2026 + AHK/AK-tabellen (Belastingdienst) --
+// https://www.belastingdienst.nl (Cijferbijlage 2026; tabellen algemene
+// heffingskorting + arbeidskorting). Tolerantie ±1: loonstrookafronding vs
+// jaarbasis-rekenregels.
 {
-  // Gepubliceerde payslip-stijl referenties (praktijkloonstroken) komen in
-  // een volgende fase; tot die tijd alleen structuurcontrole.
-  const t = WAIP.incomeTax(nl, 42000);
-  check('EXTERNAL-ANCHOR (placeholder): deterministisch en eindig', isFinite(t) && t === WAIP.incomeTax(nl, 42000), `loonheffing(42000)=${t.toFixed(2)}`);
+  const tol = 1;
+  check('EXTERNAL: loonheffing(25.000) = 784,48 ±1', Math.abs(WAIP.incomeTax(nl, 25000) - 784.48) <= tol, `engine=${WAIP.incomeTax(nl, 25000).toFixed(2)}`);
+  check('EXTERNAL: loonheffing(44.000) = 7.966,21 ±1', Math.abs(WAIP.incomeTax(nl, 44000) - 7966.21) <= tol, `engine=${WAIP.incomeTax(nl, 44000).toFixed(2)}`);
+  check('EXTERNAL: loonheffing(70.000) = 20.953,27 ±1', Math.abs(WAIP.incomeTax(nl, 70000) - 20953.27) <= tol, `engine=${WAIP.incomeTax(nl, 70000).toFixed(2)}`);
 }
 
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);
