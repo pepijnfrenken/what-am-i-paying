@@ -89,29 +89,43 @@ for (const [key, preset] of Object.entries(uk.presets)) {
   if (!ok) fails++;
 }
 // income route: UK income tax 2026/27 (gov.uk thresholds; NI excluded by design)
-// Bands on TOTAL income; tapered PA carves the bottom of the 20% band.
+// TAXABLE-income banding (basic-rate limit = £37,700 of taxable income; the
+// tapered PA shrinks the allowance, band edges in taxable terms stay fixed).
+// NOTE: the anchor set used between the last two commits (110k -> 32,432,
+// total-income banding) was an operator error and is superseded by this one.
 {
   const taxFn = I => {
     const pa = Math.max(0, 12570 - Math.max(0, I - 100000) / 2);
-    return 0.2 * Math.max(0, Math.min(I, 50270) - pa)
-      + 0.4 * Math.max(0, Math.min(I, 125140) - 50270)
-      + 0.45 * Math.max(0, I - 125140);
+    const taxable = Math.max(0, I - pa);
+    return 0.2 * Math.min(taxable, 37700)
+      + 0.4 * Math.max(0, Math.min(taxable, 125140) - 37700)
+      + 0.45 * Math.max(0, taxable - 125140);
   };
+  const anchors = [['25,000', 25000, 2486], ['45,000', 45000, 6486], ['100,000', 100000, 27432],
+    ['110,000', 110000, 33432], ['120,000', 120000, 39432], ['125,140', 125140, 42516], ['130,000', 130000, 44703]];
   let fail = false;
-  if (!(Math.abs(WAIP.incomeTax(uk, 37500) - taxFn(37500)) < 1e-9)) fail = true;
-  if (!(Math.abs(WAIP.incomeTax(uk, 37500) - 0.2 * (37500 - 12570)) < 1e-9)) fail = true; // basic band only, full PA
-  if (!(Math.abs(WAIP.incomeTax(uk, 25000) - 0.2 * (25000 - 12570)) < 1e-9)) fail = true; // 2,486
-  if (!(Math.abs(WAIP.incomeTax(uk, 45000) - 0.2 * (45000 - 12570)) < 1e-9)) fail = true; // 6,486
-  // PA taper anchors (£1 allowance lost per £2 above 100k)
-  if (!(Math.abs(WAIP.incomeTax(uk, 110000) - (0.2 * (50270 - 7570) + 0.4 * (110000 - 50270))) < 1e-9)) fail = true; // PA 7,570 -> 32,432
-  if (!(Math.abs(WAIP.incomeTax(uk, 110000) - 32432) < 1e-9)) fail = true;
-  if (!(Math.abs(WAIP.incomeTax(uk, 120000) - (0.2 * (50270 - 2570) + 0.4 * (120000 - 50270))) < 1e-9)) fail = true; // PA 2,570 -> 37,432
-  if (!(Math.abs(WAIP.incomeTax(uk, 120000) - 37432) < 1e-9)) fail = true;
-  if (!(Math.abs(WAIP.incomeTax(uk, 130000) - (0.2 * 50270 + 0.4 * (125140 - 50270) + 0.45 * (130000 - 125140))) < 1e-9)) fail = true; // PA 0 -> 42,189
-  if (!(Math.abs(WAIP.incomeTax(uk, 130000) - 42189) < 1e-9)) fail = true;
-  if (!(Math.abs(WAIP.incomeTax(uk, 150000) - (0.2 * 50270 + 0.4 * (125140 - 50270) + 0.45 * (150000 - 125140))) < 1e-9)) fail = true; // 51,189
+  for (const [lbl, income, expect] of anchors) {
+    if (!(Math.abs(WAIP.incomeTax(uk, income) - expect) < 1e-9)) {
+      fail = true;
+      console.log(`  anchor FAIL: ${lbl} -> engine ${WAIP.incomeTax(uk, income)}, expected ${expect}`);
+    }
+  }
+  if (!(Math.abs(WAIP.incomeTax(uk, 37500) - taxFn(37500)) < 1e-9)) fail = true; // structure check
+  // property tests (would have caught the total-income detour):
+  // (a) marginal rate across the PA-taper zone is exactly 0.60
+  if (!(Math.abs((WAIP.incomeTax(uk, 110000) - WAIP.incomeTax(uk, 100000)) / 10000 - 0.60) < 1e-12)) {
+    fail = true;
+    console.log('  property FAIL: taper-zone marginal is not 0.60');
+  }
+  // (b) tax at the PA-zero point (125,140) is 42,516 — also an anchor above
+  if (!(Math.abs(WAIP.incomeTax(uk, 125140) - 42516) < 1e-9)) fail = true;
+  // (c) no discontinuity at 100,000: marginal just below is exactly 0.40
+  if (!(Math.abs(WAIP.incomeTax(uk, 100000) - WAIP.incomeTax(uk, 99000)) - 0.40 * 1000 < 1e-9)) {
+    fail = true;
+    console.log('  property FAIL: marginal just below 100k is not 0.40');
+  }
   if (!(uk.salaryDefault === 37500)) fail = true;
-  console.log(`anchor: income tax 2026/27 (25k=${WAIP.incomeTax(uk, 25000).toFixed(0)} 45k=${WAIP.incomeTax(uk, 45000).toFixed(0)} 110k=${WAIP.incomeTax(uk, 110000).toFixed(0)} 120k=${WAIP.incomeTax(uk, 120000).toFixed(0)} 130k=${WAIP.incomeTax(uk, 130000).toFixed(0)}) ${fail ? 'FAIL' : 'ok'}`);
+  console.log(`anchor: income tax 2026/27 (${anchors.map(([lbl, inc]) => `${lbl}=${WAIP.incomeTax(uk, inc).toFixed(0)}`).join(' ')}) ${fail ? 'FAIL' : 'ok'}`);
   if (fail) fails++;
 }
 // --- EXTERNAL-ANCHOR: payslip reference values arrive next phase --------------

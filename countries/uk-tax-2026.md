@@ -9,7 +9,7 @@ route shows **income tax only — NI explicitly excluded** (labelled in the view
 | Band | Taxable income | Rate |
 |---|---|---|
 | Personal Allowance | up to £ 12,570 | 0 % |
-| Basic rate | £ 12,571 – £ 50,270 (bands sit on **total income**; the PA carves the bottom of the 20% band, so a tapered PA widens it to 50,270 − PA) | 20 % |
+| Basic rate | £ 12,571 – £ 50,270 (bands are charged on **taxable income**: basic-rate limit £ 37,700 of taxable; the tapered PA only shrinks the allowance, band edges in taxable terms stay fixed) | 20 % |
 | Higher rate | £ 50,271 – £ 125,140 | 40 % |
 | Additional rate | over £ 125,140 | 45 % |
 
