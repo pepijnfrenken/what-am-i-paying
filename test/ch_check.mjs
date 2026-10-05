@@ -100,5 +100,11 @@ check('Dezimalpunkt (kein decimalComma)', ch.currency.decimalComma !== true && c
   check('Wocheneinkäufe 147 @2.6%: MWST = 147 x 2.6/102.6 = 3,725146..., duty 0', close(got.vat, 147 * 2.6 / 102.6) && got.duty === 0, `vat=${got.vat} duty=${got.duty}`);
 }
 
+// --- Einkommensroute: Brutto -> Steuer (bestehende Lohnkeil wiederverwendet) -
+{
+  check('income→tax: 100000 x 0,323 = 32.300 (1e-9)', close(WAIP.incomeTax(ch, 100000, 0.323), 100000 * 0.323));
+  check('salaryDefault = 100.000 (Zürich-Standardbande)', ch.salaryDefault === 100000, String(ch.salaryDefault));
+}
+
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);
 process.exit(fails === 0 ? 0 : 1);

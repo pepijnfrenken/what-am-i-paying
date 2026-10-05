@@ -88,6 +88,13 @@ for (const [key, preset] of Object.entries(uk.presets)) {
   console.log(`anchor: groceries 73.70 -> vat ${got.vat}, duty ${got.duty} ${ok ? 'ok' : 'FAIL'}`);
   if (!ok) fails++;
 }
+// income route: gross -> tax via the existing wedge (marginal x gross)
+{
+  let fail = !(Math.abs(WAIP.incomeTax(uk, 37500, 0.28) - 37500 * 0.28) < 1e-9);
+  if (!(uk.salaryDefault === 37500)) fail = true;
+  console.log(`anchor: income route (37500 x 0.28 = ${(37500 * 0.28).toFixed(2)}, salaryDefault ${uk.salaryDefault}) ${fail ? 'FAIL' : 'ok'}`);
+  if (fail) fails++;
+}
 // budget split anchors (TME FY2025-26, where-goes-2026.md)
 {
   const baseline = uk.budget.social * 1e6 / uk.budget.population;

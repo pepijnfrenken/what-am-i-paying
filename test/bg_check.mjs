@@ -103,5 +103,11 @@ check('хлябът е 20 % ДДС (без намалено)', bg.presets.hlyab.
   check('покупки 69 @20%: ДДС = 69 x 20/120 = 11,5, акциз 0', close(got.vat, 69 * 20 / 120) && got.duty === 0, `vat=${got.vat} duty=${got.duty}`);
 }
 
+// --- облагаем доход: bruto -> данък (съществуващия клин, преизползван) ------
+{
+  check('income→tax: 27600 x 0,224 = 6.182,40 (1e-9)', close(WAIP.incomeTax(bg, 27600, 0.224), 27600 * 0.224));
+  check('salaryDefault = 27.600 (таван €2.300/мес)', bg.salaryDefault === 27600, String(bg.salaryDefault));
+}
+
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);
 process.exit(fails === 0 ? 0 : 1);

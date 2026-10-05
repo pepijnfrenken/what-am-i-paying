@@ -135,5 +135,12 @@ check('mineraalwater 330ml -> 0', duty({ price: 0.95, vatRate: 0.21, marginal: 0
   check('boodschappen 135 @9%: btw = 135 x 9/109 = 11,146789..., accijns 0', close(got.vat, 135 * 9 / 109) && got.duty === 0, `vat=${got.vat} duty=${got.duty}`);
 }
 
+// --- inkomstenroute: bruto -> belasting (bestaande loonwig hergebruikt) ------
+{
+  check('income→tax: 42000 x 0,42 = 17.640 (db-check, 1e-9)', close(WAIP.incomeTax(nl, 42000, 0.42), 42000 * 0.42));
+  check('income→tax: defaultband 42,0% voert dezelfde wig uit', close(WAIP.incomeTax(nl, 42000, 0.42), 42000 * nl.taxBands.find(b => b.selected).rate));
+  check('salaryDefault = 42.000 (midden standaardband)', nl.salaryDefault === 42000, String(nl.salaryDefault));
+}
+
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);
 process.exit(fails === 0 ? 0 : 1);
