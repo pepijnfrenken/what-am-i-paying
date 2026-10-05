@@ -1,5 +1,13 @@
 name: Deploy to GitHub Pages
 
+# Note on re-runs: never partially re-run this workflow (`gh run rerun --failed`).
+# A re-run of the deploy job re-executes the upload step, leaving TWO artifacts
+# named "github-pages" in the same run, and actions/deploy-pages then refuses
+# ("Multiple artifacts ... unexpectedly found"). If a run fails, use a fresh run
+# (`gh workflow run pages.yml`) or push a new commit. The deploy step below also
+# retries in-run, which covers the transient OIDC/token-service timeouts that
+# GitHub occasionally serves.
+
 on:
   push:
     branches: [master]
@@ -19,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deploy_a.outputs.page_url || steps.deploy_b.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -33,5 +41,12 @@ jobs:
       - uses: actions/upload-pages-artifact@v5
         with:
           path: .
-      - id: deployment
+      - id: deploy_a
+        uses: actions/deploy-pages@v5
+        continue-on-error: true
+      - name: Pause before retry (transient token-service hiccups)
+        if: steps.deploy_a.outcome == 'failure'
+        run: sleep 25
+      - id: deploy_b
+        if: steps.deploy_a.outcome == 'failure'
         uses: actions/deploy-pages@v5
