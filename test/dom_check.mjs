@@ -225,6 +225,7 @@ async function main() {
       tabWhereLabel: txt('tab-where'),
       bandOptions: Array.from(bt.options).map(o => o.value),
       itemOptions: Array.from(g('item').options).map(o => o.textContent),
+      itemHint: txt('item-hint'),
       vatOptions: Array.from(g('vat').options).map(o => o.textContent),
       vatSelected: g('vat').selectedOptions[0] ? g('vat').selectedOptions[0].textContent : null,
       r: {
@@ -319,6 +320,13 @@ async function main() {
   check('UK: Big Mac selectable, £5.49 @ 20% VAT, no duty',
     snap.r.item === 'Big Mac (eat-in)' && snap.r.price === '£5.49' && snap.r.vat === '−£0.92' && snap.r.duty === '£0.00',
     `${snap.r.price} | ${snap.r.vat} | ${snap.r.duty}`);
+  // weekly groceries preset (zero-rated basket, hint shown)
+  await act(`(() => { const s = document.getElementById('item'); s.value = 'groceries'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('UK: groceries — £73.70 @ 0% VAT, no duty, hint with zero-rated',
+    snap.r.item === 'Weekly groceries (average household)' && snap.r.price === '£73.70' && snap.r.vat === '£0.00' && snap.r.duty === '£0.00' &&
+    snap.itemHint.includes('zero-rated') && snap.itemHint.includes('ONS'),
+    `${snap.r.price} | ${snap.r.vat} | ${snap.itemHint.slice(0, 40)}`);
 
   // comparison view: toggle reveals one row per preset
   await act(`(() => { document.getElementById('show-all').click(); return true; })()`);
@@ -398,6 +406,13 @@ async function main() {
   check('NL: Big Mac selectable, €6,10 @ 9% VAT, no duty',
     snap.r.item === 'Big Mac (in het restaurant)' && snap.r.price === '€6,10' && snap.r.vat === '−€0,50' && snap.r.duty === '€0,00' && snap.r.vatL === 'Min btw (9%)',
     `${snap.r.price} | ${snap.r.vat} | ${snap.r.duty} | ${snap.r.vatL}`);
+  // weekly groceries preset (9% basket, Nibud hint)
+  await act(`(() => { const s = document.getElementById('item'); s.value = 'groceries'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('NL: weekboodschappen — €135,00 @ 9% VAT, no duty, Nibud hint',
+    snap.r.item === 'Weekboodschappen (gemiddeld gezin)' && snap.r.price === '€135,00' && snap.r.vat === '−€11,15' && snap.r.duty === '€0,00' &&
+    snap.itemHint.includes('Nibud'),
+    `${snap.r.price} | ${snap.r.vat} | ${snap.itemHint.slice(0, 40)}`);
   // comparison view: native labels, row count, row click, collapse
   check('NL: Show all button labelled Toon alles', snap.showAllLabel === 'Toon alles' && snap.compareVisible === false, snap.showAllLabel);
   await act(`(() => { document.getElementById('show-all').click(); return true; })()`);
@@ -472,6 +487,13 @@ async function main() {
   check('CH: Big Mac selectable, CHF 7.20 @ 8.1% MWST, no duty',
     snap.r.item === 'Big Mac (im Restaurant)' && snap.r.price === 'CHF 7.20' && snap.r.vat === '−CHF 0.54' && snap.r.duty === 'CHF 0.00',
     `${snap.r.price} | ${snap.r.vat} | ${snap.r.duty}`);
+  // weekly groceries preset (reduced 2.6%, BFS hint)
+  await act(`(() => { const s = document.getElementById('item'); s.value = 'groceries'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('CH: Wocheneinkäufe — CHF 147.00 @ 2.6%, no duty, BFS hint',
+    snap.r.item === 'Wocheneinkäufe (Durchschnittshaushalt)' && snap.r.price === 'CHF 147.00' && snap.r.vat === '−CHF 3.73' && snap.r.duty === 'CHF 0.00' &&
+    snap.itemHint.includes('BFS'),
+    `${snap.r.price} | ${snap.r.vat} | ${snap.itemHint.slice(0, 40)}`);
   // comparison view: one row per preset, then collapse
   await act(`(() => { document.getElementById('show-all').click(); return true; })()`);
   snap = await snapshot();
@@ -513,6 +535,13 @@ async function main() {
   check('BG: Big Mac selectable, €6,10 @ 20% ДДС, no duty',
     snap.r.item === 'Биг Мак (в ресторанта)' && snap.r.price === '€6,10' && snap.r.vat === '−€1,02' && snap.r.duty === '€0,00',
     `${snap.r.price} | ${snap.r.vat} | ${snap.r.duty}`);
+  // weekly groceries preset (20% basin basket)
+  await act(`(() => { const s = document.getElementById('item'); s.value = 'groceries'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('BG: седмични покупки — €69,00 @ 20% ДДС, no duty',
+    snap.r.item === 'Седмични покупки (средно домакинство)' && snap.r.price === '€69,00' && snap.r.vat === '−€11,50' && snap.r.duty === '€0,00' &&
+    snap.itemHint.includes('ДДС'),
+    `${snap.r.price} | ${snap.r.vat} | ${snap.itemHint.slice(0, 40)}`);
   // comparison view: one row per preset, then collapse
   await act(`(() => { document.getElementById('show-all').click(); return true; })()`);
   snap = await snapshot();
