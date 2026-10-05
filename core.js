@@ -270,7 +270,7 @@
       if (lang === 'en' && !cfg.copyEn) lang = 'native';
       const cur = preserveItem && Object.prototype.hasOwnProperty.call(cfg.presets, $('item').value)
         ? $('item').value : Object.keys(cfg.presets)[0];
-      applyStaticCopy(); loadVat(); loadTaxBands(); loadPresets(); buildLangOptions();
+      applyStaticCopy(); loadVat(); loadTaxBands(); loadPresets(); buildLangOptions(); updateShowAllUI();
       $('item').value = cur;
       applyPreset(cur);
     }
@@ -279,11 +279,67 @@
       const res = WAIP.compute(cfg, st);
       render(cfg, st, res);
       $('custom-rate-wrap').hidden = $('band-tax').value !== 'custom';
+      if (showAll) buildCompare();
     }
     function switchCountry(code) {
       cfg = WAIP.countries[code];
       renderCurrent(false);
     }
+
+    // ------------------------------------------------------ comparison view
+    const showBtn = $('show-all');
+    const cmpBox = $('compare');
+    let showAll = false;
+
+    function currentMarginal() {
+      return $('band-tax').value === 'custom'
+        ? WAIP.num($('crate').value) / 100
+        : WAIP.num($('band-tax').value);
+    }
+    function updateShowAllUI() {
+      showBtn.hidden = false;
+      showBtn.textContent = showAll ? labelCopy(cfg).showAllHide : labelCopy(cfg).showAll;
+    }
+    function buildCompare() {
+      if (!showAll) return;
+      const C = labelCopy(cfg);
+      const f = v => WAIP.formatMoney(cfg, v);
+      const rows = Object.entries(cfg.presets).map(([key, p]) => {
+        const panel = Object.assign({}, p.panel || {});
+        panel.draughtOn = !!panel.draught;
+        const res = WAIP.compute(cfg, {
+          preset: p, lang,
+          price: WAIP.num(p.price),
+          vatRate: p.vat != null ? WAIP.num(p.vat) : WAIP.num($('vat').value),
+          marginal: currentMarginal(), kind: p.kind, panel
+        });
+        const govt = res.gross > 0 ? ((res.govt / res.gross) * 100).toFixed(0) + '%' : '\u2013';
+        return `<tr data-key="${key}"><td>${presetLabel(p)}</td>` +
+          `<td class="num">${f(res.price)}</td><td class="num">${f(Math.max(0, res.under))}</td>` +
+          `<td class="num">${f(res.gross)}</td><td class="num">${govt}</td></tr>`;
+      }).join('');
+      const H = C.compare;
+      cmpBox.innerHTML =
+        `<div class="compare-wrap"><table class="compare"><thead><tr>` +
+        [H.item, H.price, H.could, H.real, H.govt].map(x => `<th>${x}</th>`).join('') +
+        `</tr></thead><tbody>${rows}</tbody></table></div>`;
+      cmpBox.hidden = false;
+    }
+    showBtn.addEventListener('click', () => {
+      showAll = !showAll;
+      updateShowAllUI();
+      if (showAll) buildCompare();
+      else { cmpBox.hidden = true; cmpBox.innerHTML = ''; }
+    });
+    cmpBox.addEventListener('click', e => {
+      const tr = e.target.closest('tr[data-key]');
+      if (!tr) return;
+      $('item').value = tr.dataset.key;
+      applyPreset(tr.dataset.key);
+      const rec = document.querySelector('.receipt-wrap');
+      if (rec) rec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      buildCompare();
+    });
 
     csel.addEventListener('change', () => switchCountry(csel.value));
     langSel.addEventListener('change', () => { lang = langSel.value; renderCurrent(true); });

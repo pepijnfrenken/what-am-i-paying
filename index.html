@@ -74,6 +74,18 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-
 .countrybar{display:flex;gap:10px;align-items:center;margin:0 0 18px}
 .countrybar label{margin:0;font-size:.85rem}
 .countrybar select{width:auto;min-width:180px}
+.showall-wrap{margin:26px 0 0}
+#show-all{font:inherit;font-size:.9rem;font-weight:600;color:var(--strong);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:9px 16px;cursor:pointer}
+#show-all:hover{border-color:var(--rule)}
+.compare-wrap{overflow-x:auto;margin-top:14px;border:1px solid var(--line);border-radius:8px}
+table.compare{width:100%;min-width:560px;border-collapse:collapse;background:var(--paper);color:var(--ink);font-size:.85rem}
+.compare th{text-align:left;font-size:.78rem;font-weight:600;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line)}
+.compare td{padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.compare td:first-child{white-space:normal;color:var(--strong);font-weight:600}
+.compare th.num,.compare td.num{text-align:right;font-family:var(--mono)}
+.compare tbody tr{cursor:pointer}
+.compare tbody tr:hover{background:var(--panel)}
+.compare tbody tr:last-child td{border-bottom:0}
 </style>
 </head>
 <body>
@@ -156,6 +168,11 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-
         <div class="warn" id="warn" hidden></div>
       </div>
     </section>
+  </div>
+
+  <div class="showall-wrap">
+    <button id="show-all" type="button" hidden></button>
+    <div id="compare" hidden></div>
   </div>
 
   <div class="notes">
