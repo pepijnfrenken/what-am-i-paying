@@ -135,11 +135,33 @@ check('mineraalwater 330ml -> 0', duty({ price: 0.95, vatRate: 0.21, marginal: 0
   check('boodschappen 135 @9%: btw = 135 x 9/109 = 11,146789..., accijns 0', close(got.vat, 135 * 9 / 109) && got.duty === 0, `vat=${got.vat} duty=${got.duty}`);
 }
 
-// --- inkomstenroute: bruto -> belasting (bestaande loonwig hergebruikt) ------
+// --- inkomstenroute: echte loonheffing 2026 (single, <AOW) -------------------
+// Onafhankelijke herberekening uit nl-rates-2026.md (niet via WAIP afgeleid).
 {
-  check('income→tax: 42000 x 0,42 = 17.640 (db-check, 1e-9)', close(WAIP.incomeTax(nl, 42000, 0.42), 42000 * 0.42));
-  check('income→tax: defaultband 42,0% voert dezelfde wig uit', close(WAIP.incomeTax(nl, 42000, 0.42), 42000 * nl.taxBands.find(b => b.selected).rate));
-  check('salaryDefault = 42.000 (midden standaardband)', nl.salaryDefault === 42000, String(nl.salaryDefault));
+  const loonheffing = I => {
+    const bracket = 0.3575 * Math.min(I, 38883) + 0.3756 * Math.max(0, Math.min(I, 78426) - 38883) + 0.495 * Math.max(0, I - 78426);
+    const ahk = Math.max(0, 3115 - 0.06398 * Math.max(0, I - 29736));
+    let ak;
+    if (I <= 11965) ak = 0.08324 * I;
+    else if (I <= 25845) ak = 0.08324 * 11965 + 0.31009 * (I - 11965);
+    else if (I <= 45592) ak = Math.min(5685, 0.08324 * 11965 + 0.31009 * 13880 + 0.0195 * (I - 25845));
+    else ak = Math.max(0, 5685 - 0.0651 * (I - 45592));
+    return Math.max(0, bracket - ahk - ak);
+  };
+  check('loonheffing(42.000) = schijven − AHK − AK (hand, 1e-9)', close(WAIP.incomeTax(nl, 42000), loonheffing(42000)), `engine=${WAIP.incomeTax(nl, 42000).toFixed(2)}`);
+  check('loonheffing(42.000) = 7.126,03 (expliciete handwaarde)', close(WAIP.incomeTax(nl, 42000), 7126.03, 1e-2));
+  check('loonheffing(30.000): schijf 1 + AK-opbouw-fase', close(WAIP.incomeTax(nl, 30000), loonheffing(30000)));
+  check('loonheffing(60.000): AK-afbouw actief', close(WAIP.incomeTax(nl, 60000), loonheffing(60000)));
+  check('loonheffing(150.000): boven alle faseringen', close(WAIP.incomeTax(nl, 150000), loonheffing(150000)));
+  check('effectief tarief = belasting / bruto (niet marginaal)', close(WAIP.incomeTax(nl, 42000) / 42000, loonheffing(42000) / 42000));
+  check('salaryDefault = 42.000', nl.salaryDefault === 42000, String(nl.salaryDefault));
+}
+// --- EXTERNAL-ANCHOR: loonstrook-referentiewaarden volgen volgende fase -------
+{
+  // Gepubliceerde payslip-stijl referenties (praktijkloonstroken) komen in
+  // een volgende fase; tot die tijd alleen structuurcontrole.
+  const t = WAIP.incomeTax(nl, 42000);
+  check('EXTERNAL-ANCHOR (placeholder): deterministisch en eindig', isFinite(t) && t === WAIP.incomeTax(nl, 42000), `loonheffing(42000)=${t.toFixed(2)}`);
 }
 
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);

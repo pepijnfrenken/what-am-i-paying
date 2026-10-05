@@ -103,10 +103,22 @@ check('хлябът е 20 % ДДС (без намалено)', bg.presets.hlyab.
   check('покупки 69 @20%: ДДС = 69 x 20/120 = 11,5, акциз 0', close(got.vat, 69 * 20 / 120) && got.duty === 0, `vat=${got.vat} duty=${got.duty}`);
 }
 
-// --- облагаем доход: bruto -> данък (съществуващия клин, преизползван) ------
+// --- облагаем доход: ДОД 2026 = 10 % × (bruto − bijdragen, plafond) ----------
+// Hand-berekening uit bg-rates-2026.md (pro-rata capplint).
 {
-  check('income→tax: 27600 x 0,224 = 6.182,40 (1e-9)', close(WAIP.incomeTax(bg, 27600, 0.224), 27600 * 0.224));
-  check('salaryDefault = 27.600 (таван €2.300/мес)', bg.salaryDefault === 27600, String(bg.salaryDefault));
+  const cap = 7 * 2111.64 + 5 * 2300;
+  const dod = I => 0.1 * (I - 0.1378 * Math.min(I, cap));
+  check('ДОД(27.600) = 10% × (27.600 − 13,78%×plafond 26.281,48) (hand, 1e-9)', close(WAIP.incomeTax(bg, 27600), dod(27600)), `engine=${WAIP.incomeTax(bg, 27600).toFixed(4)} cap=${cap}`);
+  check('ДОД(27.600) = 2.397,84 (afgeronde expliciete handwaarde)', close(WAIP.incomeTax(bg, 27600), 2397.84, 1e-2));
+  check('ДОД(20.000) onder plafond: 10% × 86,22% × bruto', close(WAIP.incomeTax(bg, 20000), 0.1 * (20000 - 0.1378 * 20000)));
+  check('ДОД(50.000) boven plafond: bijdragen afgetopt op cap', close(WAIP.incomeTax(bg, 50000), 0.1 * (50000 - 0.1378 * cap)));
+  check('effectief = belasting / bruto (niet marginaal)', close(WAIP.incomeTax(bg, 27600) / 27600, dod(27600) / 27600));
+  check('salaryDefault = 27.600 (€2.300/мес plafond)', bg.salaryDefault === 27600, String(bg.salaryDefault));
+}
+// --- EXTERNAL-ANCHOR: платежни фишове (payslip refs) — следваща фаза ----------
+{
+  const t = WAIP.incomeTax(bg, 27600);
+  check('EXTERNAL-ANCHOR (placeholder): детерминистично и крайно', isFinite(t) && t === WAIP.incomeTax(bg, 27600), `ДОД(27600)=${t.toFixed(2)}`);
 }
 
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);

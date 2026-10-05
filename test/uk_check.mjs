@@ -88,12 +88,28 @@ for (const [key, preset] of Object.entries(uk.presets)) {
   console.log(`anchor: groceries 73.70 -> vat ${got.vat}, duty ${got.duty} ${ok ? 'ok' : 'FAIL'}`);
   if (!ok) fails++;
 }
-// income route: gross -> tax via the existing wedge (marginal x gross)
+// income route: UK income tax 2026/27 (gov.uk thresholds; NI excluded by design)
 {
-  let fail = !(Math.abs(WAIP.incomeTax(uk, 37500, 0.28) - 37500 * 0.28) < 1e-9);
+  const taxFn = I => {
+    const pa = Math.max(0, 12570 - Math.max(0, I - 100000) / 2);
+    const taxable = Math.max(0, I - pa);
+    return 0.2 * Math.min(taxable, 37700) + 0.4 * Math.max(0, Math.min(taxable, 125140) - 37700) + 0.45 * Math.max(0, taxable - 125140);
+  };
+  let fail = false;
+  if (!(Math.abs(WAIP.incomeTax(uk, 37500) - taxFn(37500)) < 1e-9)) fail = true;
+  if (!(Math.abs(WAIP.incomeTax(uk, 37500) - 0.2 * (37500 - 12570)) < 1e-9)) fail = true; // basic band only
+  if (!(Math.abs(WAIP.incomeTax(uk, 120000) - taxFn(120000)) < 1e-9)) fail = true; // PA taper active
+  if (!(Math.abs(WAIP.incomeTax(uk, 150000) - 0.2 * 37700 - 0.4 * (125140 - 37700) - 0.45 * (150000 - 125140)) < 1e-9)) fail = true; // 45%, PA zero
   if (!(uk.salaryDefault === 37500)) fail = true;
-  console.log(`anchor: income route (37500 x 0.28 = ${(37500 * 0.28).toFixed(2)}, salaryDefault ${uk.salaryDefault}) ${fail ? 'FAIL' : 'ok'}`);
+  console.log(`anchor: income tax 2026/27 (37500 -> ${WAIP.incomeTax(uk, 37500).toFixed(2)}, 120000 -> ${WAIP.incomeTax(uk, 120000).toFixed(2)}, 150000 -> ${WAIP.incomeTax(uk, 150000).toFixed(2)}) ${fail ? 'FAIL' : 'ok'}`);
   if (fail) fails++;
+}
+// --- EXTERNAL-ANCHOR: payslip reference values arrive next phase --------------
+{
+  const t = WAIP.incomeTax(uk, 37500);
+  const ok = isFinite(t) && t === WAIP.incomeTax(uk, 37500);
+  console.log(`EXTERNAL-ANCHOR placeholder: deterministic (37500 -> ${t.toFixed(2)}) ${ok ? 'ok' : 'FAIL'}`);
+  if (!ok) fails++;
 }
 // budget split anchors (TME FY2025-26, where-goes-2026.md)
 {

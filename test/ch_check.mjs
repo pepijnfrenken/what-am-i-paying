@@ -100,10 +100,28 @@ check('Dezimalpunkt (kein decimalComma)', ch.currency.decimalComma !== true && c
   check('Wocheneinkäufe 147 @2.6%: MWST = 147 x 2.6/102.6 = 3,725146..., duty 0', close(got.vat, 147 * 2.6 / 102.6) && got.duty === 0, `vat=${got.vat} duty=${got.duty}`);
 }
 
-// --- Einkommensroute: Brutto -> Steuer (bestehende Lohnkeil wiederverwendet) -
+// --- Einkommensroute: direkte Bundessteuer 2026, Tarif 58c (ledig) -----------
+// Unabhängige Schachtel-Integration aus ch-rates-2026.md.
 {
-  check('income→tax: 100000 x 0,323 = 32.300 (1e-9)', close(WAIP.incomeTax(ch, 100000, 0.323), 100000 * 0.323));
+  const caps = [15200, 33200, 43500, 58000, 76200, 82100, 108900, 141500, 185100, 793900];
+  const m = [0, 0.0077, 0.0088, 0.0264, 0.0297, 0.0594, 0.066, 0.088, 0.11, 0.132];
+  const bundessteuer = I => {
+    let t = 0;
+    for (let i = 0; i < caps.length; i++) t += Math.max(0, Math.min(I, caps[i]) - (i ? caps[i - 1] : 0)) * m[i];
+    if (I > caps[9]) t += 0.115 * (I - caps[9]);
+    return t;
+  };
+  check('Bundessteuer(100.000) = 2.684,44 (hand, 1e-9)', close(WAIP.incomeTax(ch, 100000), bundessteuer(100000)) && close(WAIP.incomeTax(ch, 100000), 2684.44), `engine=${WAIP.incomeTax(ch, 100000).toFixed(2)}`);
+  check('Bundessteuer(50.000) mittlere Stufen', close(WAIP.incomeTax(ch, 50000), bundessteuer(50000)));
+  check('Bundessteuer(800.000): 13,2%-Stufe aktiv, 11,5% noch nicht', close(WAIP.incomeTax(ch, 800000), bundessteuer(800000)));
+  check('Bundessteuer(1.000.000) Quirk: 11,5% über 793.900', close(WAIP.incomeTax(ch, 1000000), bundessteuer(1000000)) && close(WAIP.incomeTax(ch, 1000000), 114999.74));
+  check('effektiv = Steuer / Brutto (nicht marginal)', close(WAIP.incomeTax(ch, 100000) / 100000, bundessteuer(100000) / 100000));
   check('salaryDefault = 100.000 (Zürich-Standardbande)', ch.salaryDefault === 100000, String(ch.salaryDefault));
+}
+// --- EXTERNAL-ANCHOR: Steuerveranlagungs-Referenzwerte folgen nächste Phase ---
+{
+  const t = WAIP.incomeTax(ch, 100000);
+  check('EXTERNAL-ANCHOR (Platzhalter): deterministisch und endlich', isFinite(t) && t === WAIP.incomeTax(ch, 100000), `dbs(100000)=${t.toFixed(2)}`);
 }
 
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);
