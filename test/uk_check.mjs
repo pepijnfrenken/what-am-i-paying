@@ -89,19 +89,29 @@ for (const [key, preset] of Object.entries(uk.presets)) {
   if (!ok) fails++;
 }
 // income route: UK income tax 2026/27 (gov.uk thresholds; NI excluded by design)
+// Bands on TOTAL income; tapered PA carves the bottom of the 20% band.
 {
   const taxFn = I => {
     const pa = Math.max(0, 12570 - Math.max(0, I - 100000) / 2);
-    const taxable = Math.max(0, I - pa);
-    return 0.2 * Math.min(taxable, 37700) + 0.4 * Math.max(0, Math.min(taxable, 125140) - 37700) + 0.45 * Math.max(0, taxable - 125140);
+    return 0.2 * Math.max(0, Math.min(I, 50270) - pa)
+      + 0.4 * Math.max(0, Math.min(I, 125140) - 50270)
+      + 0.45 * Math.max(0, I - 125140);
   };
   let fail = false;
   if (!(Math.abs(WAIP.incomeTax(uk, 37500) - taxFn(37500)) < 1e-9)) fail = true;
-  if (!(Math.abs(WAIP.incomeTax(uk, 37500) - 0.2 * (37500 - 12570)) < 1e-9)) fail = true; // basic band only
-  if (!(Math.abs(WAIP.incomeTax(uk, 120000) - taxFn(120000)) < 1e-9)) fail = true; // PA taper active
-  if (!(Math.abs(WAIP.incomeTax(uk, 150000) - 0.2 * 37700 - 0.4 * (125140 - 37700) - 0.45 * (150000 - 125140)) < 1e-9)) fail = true; // 45%, PA zero
+  if (!(Math.abs(WAIP.incomeTax(uk, 37500) - 0.2 * (37500 - 12570)) < 1e-9)) fail = true; // basic band only, full PA
+  if (!(Math.abs(WAIP.incomeTax(uk, 25000) - 0.2 * (25000 - 12570)) < 1e-9)) fail = true; // 2,486
+  if (!(Math.abs(WAIP.incomeTax(uk, 45000) - 0.2 * (45000 - 12570)) < 1e-9)) fail = true; // 6,486
+  // PA taper anchors (£1 allowance lost per £2 above 100k)
+  if (!(Math.abs(WAIP.incomeTax(uk, 110000) - (0.2 * (50270 - 7570) + 0.4 * (110000 - 50270))) < 1e-9)) fail = true; // PA 7,570 -> 32,432
+  if (!(Math.abs(WAIP.incomeTax(uk, 110000) - 32432) < 1e-9)) fail = true;
+  if (!(Math.abs(WAIP.incomeTax(uk, 120000) - (0.2 * (50270 - 2570) + 0.4 * (120000 - 50270))) < 1e-9)) fail = true; // PA 2,570 -> 37,432
+  if (!(Math.abs(WAIP.incomeTax(uk, 120000) - 37432) < 1e-9)) fail = true;
+  if (!(Math.abs(WAIP.incomeTax(uk, 130000) - (0.2 * 50270 + 0.4 * (125140 - 50270) + 0.45 * (130000 - 125140))) < 1e-9)) fail = true; // PA 0 -> 42,189
+  if (!(Math.abs(WAIP.incomeTax(uk, 130000) - 42189) < 1e-9)) fail = true;
+  if (!(Math.abs(WAIP.incomeTax(uk, 150000) - (0.2 * 50270 + 0.4 * (125140 - 50270) + 0.45 * (150000 - 125140))) < 1e-9)) fail = true; // 51,189
   if (!(uk.salaryDefault === 37500)) fail = true;
-  console.log(`anchor: income tax 2026/27 (37500 -> ${WAIP.incomeTax(uk, 37500).toFixed(2)}, 120000 -> ${WAIP.incomeTax(uk, 120000).toFixed(2)}, 150000 -> ${WAIP.incomeTax(uk, 150000).toFixed(2)}) ${fail ? 'FAIL' : 'ok'}`);
+  console.log(`anchor: income tax 2026/27 (25k=${WAIP.incomeTax(uk, 25000).toFixed(0)} 45k=${WAIP.incomeTax(uk, 45000).toFixed(0)} 110k=${WAIP.incomeTax(uk, 110000).toFixed(0)} 120k=${WAIP.incomeTax(uk, 120000).toFixed(0)} 130k=${WAIP.incomeTax(uk, 130000).toFixed(0)}) ${fail ? 'FAIL' : 'ok'}`);
   if (fail) fails++;
 }
 // --- EXTERNAL-ANCHOR: payslip reference values arrive next phase --------------
