@@ -204,6 +204,9 @@ async function main() {
       prefix: txt('price-prefix'), itemLabel: txt('item-label'),
       title: txt('title'), panelsText: g('panels').textContent,
       countries: Array.from(g('country').options).map(o => o.value + ':' + o.textContent),
+      langVisible: !g('lang').hidden,
+      langValue: g('lang').value,
+      langOptions: Array.from(g('lang').options).map(o => o.textContent),
       bandOptions: Array.from(bt.options).map(o => o.value),
       itemOptions: Array.from(g('item').options).map(o => o.textContent),
       vatOptions: Array.from(g('vat').options).map(o => o.textContent),
@@ -251,6 +254,7 @@ async function main() {
   check('UK: tax line label present', snap.r.taxL.includes('Plus income tax and NI'), snap.r.taxL);
   cross('UK: Mars receipt matches WAIP.compute', WAIP.countries.uk, snap, ['price', 'vat', 'under', 'gross', 'tax']);
   check('UK: no duty panel for Mars (duty-fields hidden)', snap.dutyFieldsHidden === true);
+  check('UK: language control hidden (no copyEn)', snap.langVisible === false);
 
   // pint preset
   let ok = await act(`(() => { const s = document.getElementById('item'); s.value = 'pint'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
@@ -340,6 +344,19 @@ async function main() {
     `${snap.r.duty} | ${snap.r.dutySubs.slice(0, 60)}`);
   check('NL: autoverzekering — Min btw (0%) en Vrijgesteld geselecteerd',
     snap.r.vatL === 'Min btw (0%)' && /Vrijgesteld/.test(snap.vatSelected), `${snap.r.vatL} | ${snap.vatSelected}`);
+  check('NL: language control visible, native default', snap.langVisible === true && snap.langValue === 'native' && snap.langOptions.join(',') === 'Nederlands,English', snap.langOptions.join(','));
+  // toggle to English: receipt re-renders, current item preserved
+  await act(`(() => { const s = document.getElementById('lang'); s.value = 'en'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('NL: English toggle re-renders receipt in English (item preserved)',
+    snap.langValue === 'en' && snap.r.item === 'Car insurance (annual premium, indicative)' &&
+    snap.itemLabel === 'Item' && snap.r.vatL === 'Minus VAT (0%)' &&
+    snap.r.dutySubs.includes('Assurance duty 21% of the premium') && snap.r.taxL.startsWith('Plus income tax'),
+    `${snap.r.item} | ${snap.r.vatL} | ${snap.r.dutySubs.slice(0, 50)}`);
+  check('NL: amounts stay comma-formatted in English (€126,00)', snap.r.duty === '−€126,00', snap.r.duty);
+  await act(`(() => { const s = document.getElementById('lang'); s.value = 'native'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('NL: switching back to native restores Dutch labels', snap.langValue === 'native' && snap.r.vatL === 'Min btw (0%)', snap.r.vatL);
   const nlErrs = snapshotErrors();
   check('NL: zero console errors / uncaught exceptions', nlErrs.length === 0, nlErrs.join(' | '));
 
@@ -390,6 +407,27 @@ async function main() {
   check('BG: ток preset noDutyLabel shown', snap.r.dutySubs.includes('освободени от акциз'), snap.r.dutySubs.slice(0, 70));
   const bgErrs = snapshotErrors();
   check('BG: zero console errors / uncaught exceptions', bgErrs.length === 0, bgErrs.join(' | '));
+
+  // ================================================================ language
+  await navigate(`${BASE}/?c=nl&lang=en`);
+  snap = await snapshot();
+  check('LANG: ?lang=en loads NL already in English', snap.langValue === 'en' && snap.itemLabel === 'Item' && snap.r.vatL === 'Minus VAT (21%)',
+    `${snap.langValue} | ${snap.r.vatL}`);
+  await act(`(() => { const s = document.getElementById('country'); s.value = 'ch'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('LANG: country switch preserves English choice (NL→CH)', snap.langValue === 'en' && snap.r.vatL === 'Minus VAT (8.1%)' && snap.langOptions.join(',') === 'Deutsch,English',
+    `${snap.langValue} | ${snap.r.vatL} | ${snap.langOptions.join(',')}`);
+  await act(`(() => { const s = document.getElementById('country'); s.value = 'uk'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('LANG: switching to uk (no copyEn) forces native + hides control',
+    snap.langVisible === false && snap.r.vatL === 'Less VAT (20%)', `${snap.langVisible} | ${snap.r.vatL}`);
+  await navigate(`${BASE}/?c=bg&lang=en`);
+  snap = await snapshot();
+  check('LANG: ?lang=en loads BG in English (Cyrillic→English)', snap.langValue === 'en' && snap.r.vatL === 'Minus VAT (20%)' && snap.itemLabel === 'Product',
+    `${snap.langValue} | ${snap.r.vatL}`);
+  await navigate(`${BASE}/?c=ch&lang=native`);
+  snap = await snapshot();
+  check('LANG: explicit ?lang=native renders native (Minus MWST 8.1%)', snap.langValue === 'native' && snap.r.vatL === 'Minus MWST (8.1%)', `${snap.langValue} | ${snap.r.vatL}`);
 
   // ================================================================ network
   const resp = history.filter(ev => ev.method === 'Network.responseReceived').map(ev => ({ url: ev.params.response.url, status: ev.params.response.status }));

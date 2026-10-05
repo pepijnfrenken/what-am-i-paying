@@ -26,6 +26,14 @@ The live site is at **https://pepijnfrenken.github.io/what-am-i-paying/**
 No dependencies, no build step — for local development, open `index.html`
 directly in a browser (`file://` works).
 
+## UI
+
+Light-only theme (no dark variant). The country bar shows a language control
+for countries that ship an English mirror (`copyEn`): `?lang=en` selects
+English, `?lang=native` (default) the native copy, and the choice survives
+country switches. Countries without `copyEn` (UK, native == English) hide the
+control. Duty-line labels follow the language via `state.lang`.
+
 ## Adding a country (4 steps)
 
 1. **Copy the template:** `cp countries/nl.js countries/<cc>.js`.
