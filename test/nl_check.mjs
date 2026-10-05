@@ -107,5 +107,11 @@ check('mineraalwater 330ml -> 0', duty({ price: 0.95, vatRate: 0.21, marginal: 0
     got.dutyLines.map(l => l.label).join(' | '));
 }
 
+// --- Big Mac 2026 (in-store, 9% food service) -------------------------------
+{
+  const got = WAIP.compute(nl, { price: 6.10, vatRate: 0.09, marginal: 0.42, kind: 'none', panel: {} });
+  check('Big Mac 6,10 @9%: btw = 6,10 x 9/109 = 0,503670..., accijns 0', close(got.vat, 6.10 * 9 / 109) && got.duty === 0, `vat=${got.vat} duty=${got.duty}`);
+}
+
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);
 process.exit(fails === 0 ? 0 : 1);

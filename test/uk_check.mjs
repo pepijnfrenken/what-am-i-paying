@@ -74,6 +74,13 @@ for (const [key, preset] of Object.entries(uk.presets)) {
   console.log(`anchor: pint 5.80 -> duty ${got.duty.toFixed(6)} (expected ${expDuty.toFixed(6)}) ${ok ? 'ok' : 'FAIL'}`);
   if (!ok) fails++;
 }
+// hand-computed anchor: Big Mac 5.49 @ 20% VAT, no duty
+{
+  const got = WAIP.compute(uk, { price: 5.49, vatRate: 0.20, marginal, kind: 'none', panel: {} });
+  const ok = Math.abs(got.vat - 5.49 * 20 / 120) < 1e-9 && got.duty === 0;
+  console.log(`anchor: Big Mac 5.49 -> vat ${got.vat.toFixed(6)} (5.49*20/120=${(5.49 * 20 / 120).toFixed(6)}), duty ${got.duty} ${ok ? 'ok' : 'FAIL'}`);
+  if (!ok) fails++;
+}
 // NL module is covered by test/nl_check.mjs (sourced 2026 duty rates).
 
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);

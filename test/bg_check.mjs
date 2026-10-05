@@ -75,5 +75,11 @@ check('хлябът е 20 % ДДС (без намалено)', bg.presets.hlyab.
   check('under = цена - ДДС - акциз', close(got.under, 4.00 - got.vat - got.duty));
 }
 
+// --- Big Mac 2026 (eat-in, 20% ДДС) -----------------------------------------
+{
+  const got = WAIP.compute(bg, { price: 6.10, vatRate: 0.2, marginal: 0.224, kind: 'none', panel: {} });
+  check('Big Mac 6,10 @20%: ДДС = 6,10 x 20/120 = 1,016667, акциз 0', close(got.vat, 6.10 * 20 / 120) && got.duty === 0, `vat=${got.vat} duty=${got.duty}`);
+}
+
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);
 process.exit(fails === 0 ? 0 : 1);

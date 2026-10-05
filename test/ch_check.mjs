@@ -71,5 +71,11 @@ check('Dezimalpunkt (kein decimalComma)', ch.currency.decimalComma !== true && c
   check('under = Preis - MWST - Bundesabgaben', close(got.under, 7.50 - got.vat - got.duty));
 }
 
+// --- Big Mac 2026 (eat-in, 8.1% MWST) ---------------------------------------
+{
+  const got = WAIP.compute(ch, { price: 7.20, vatRate: 0.081, marginal: 0.323, kind: 'none', panel: {} });
+  check('Big Mac 7.20 @8.1%: MWST = 7.20 x 8.1/108.1 = 0.539500..., duty 0', close(got.vat, 7.20 * 8.1 / 108.1) && got.duty === 0, `vat=${got.vat} duty=${got.duty}`);
+}
+
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);
 process.exit(fails === 0 ? 0 : 1);
