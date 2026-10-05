@@ -54,10 +54,18 @@ extend the mechanics freely (duty math lives in the country file — see NL's
 ## Verification
 
 ```bash
-node test/uk_check.mjs
+node test/uk_check.mjs    # UK math vs the original page's verbatim formulas
+node test/dom_check.mjs   # real-browser DOM check (headless chromium, node >= 21)
 ```
 
-Checks the modular UK module against the original page's verbatim formulas
-(per-preset deltas must be 0) plus hand-computed anchor values. When adding a
-country, add its own checker next to it (compare `WAIP.compute` against
-independently computed values for 3–4 presets).
+`uk_check.mjs` checks the modular UK module against the original page's
+verbatim formulas (per-preset deltas must be 0) plus hand-computed anchor
+values. `dom_check.mjs` serves the page with `python3 -m http.server` and
+drives a headless Chromium over CDP: it asserts the UK/NL receipts (each
+figure cross-checked against `WAIP.compute` in node, tol 0.005), country
+switching, duty-panel re-rendering and recalculation, the NL comma-decimal
+format, zero console errors, and zero failed subresources. Favicon 404s are
+waived and reported. Set `WAIP_CHROME`, `WAIP_PORT`, `WAIP_DBG_PORT` to
+override the browser binary or ports. When adding a country, add its own
+checker next to it (compare `WAIP.compute` against independently computed
+values for 3–4 presets).
