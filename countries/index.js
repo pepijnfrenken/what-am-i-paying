@@ -109,7 +109,7 @@
       currency: { symbol: 'CHF ', decimals: 2, decimalComma: false },
       module: 'countries/ch.js',
       ratesDoc: 'countries/ch-rates-2026.md',
-      docs: ['countries/ch-prices-followup.md']
+      docs: ['countries/ch-prices-followup.md', 'countries/ch-cantonal-2026.md']
     },
     {
       code: 'bg',

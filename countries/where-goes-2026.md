@@ -41,17 +41,32 @@ Labels (bg / en): zdrave = Здравеопазване / Health · ikonomika = 
 
 Baseline: 19240.7e6 / 6423207 = **€ 2,995 per person** (pensions alone €2,114). Population: НСИ 31-12-2025, 6,423,207. Source: minfin.bg (АСБП 2026–2028, Решение №597 от 6.08.2026, tables II-2 + III-1); ЗДБ 2026; НСИ.
 
-## CH — Federal budget 2026 ONLY (Voranschlag 2026, approved 19-12-2025)
+## CH — CONSOLIDATED 2024 (Bund + Kantone + Gemeinden + Sozialversicherungen; EFV Finanzstatistik, Haushalt "Staat", transfers eliminated)
 
 ```json
-{"country":"ch","currency":"CHF","total":91116,"social":31823,"population":9127100,
- "cats":{"finanzen":15116,"verkehr":10734,"bildung":9000,"sicherheit":7818,"landwirtschaft":3710,"ausland":3807,"uebrige":9108},
- "official_total_note":"Federal expenditures CHF 91,116m (incl. CHF 470m extraordinary). Debt interest ~CHF 1.0bn sits inside 'finanzen'. Cantons+communes run ~2/3 of total Swiss public spending (health, education, police) and are NOT in this split — the view must carry this note."}
+{"country":"ch","currency":"CHF","total":262943,"social":104845,"population":9006600,
+ "cats":{"bildung":47928,"sicherheit":20092,"verkehr":19634,"gesundheit":19138,"finanzen":6006,"landwirtschaft":4381,"uebrige":40919},
+ "total_per_capita":29194,
+ "vintage_note":"2024 is the latest year with function-level detail (FS 'Rechnung'). 2025 exists only as aggregate: total ~CHF 273.4bn (~CHF 30,080 per capita).",
+ "supersedes":"the earlier federal-only CH scope (CHF 3,487 baseline) — it covered only ~1/3 of Swiss public money"}
 ```
 
-Labels (de / en): finanzen = Finanzen & Steuern (Finanzausgleich, Kantonsanteile, Zinsen) / Finance & taxes (fiscal equalisation, cantonal shares, interest) · verkehr = Verkehr / Transport · bildung = Bildung & Forschung / Education & research · sicherheit = Sicherheit & Verteidigung / Security & defence · landwirtschaft = Landwirtschaft & Ernährung / Agriculture & food · ausland = Beziehungen zum Ausland (IZA) / Foreign relations & cooperation · uebrige = Übrige Aufgabengebiete (Kultur, Gesundheit, Umwelt, Wirtschaft) / Other task areas (culture, health, environment, economy).
+Labels (de / en): bildung = Bildung & Forschung / Education & research · sicherheit = Öffentliche Ordnung, Sicherheit & Verteidigung / Public order, security & defence · verkehr = Verkehr & Telekommunikation / Transport & telecom · gesundheit = Gesundheit / Health · finanzen = Finanzen & Steuern (v.a. Zinsen) / Finance & taxes (mainly interest) · landwirtschaft = Landwirtschaft & Ernährung / Agriculture & food · uebrige = Übrige (Verwaltung, Kultur, Umwelt, Wirtschaft) / Other (administration, culture, environment, economy)
 
-Baseline: 31823e6 / 9127100 = **CHF 3,487 per person (federal scope)**. Population: BFS 31-12-2025, 9,127,100. Source: EFV Voranschlag 2027 mit IAFP 2028-2030, Band 1 (VA 2026 column); efv.admin.ch budget 2026; BFS.
+Baseline: 104845e6 / 9006600 = **CHF 11,641 per person** (consolidated social protection). Context line: total public spending **CHF 29,194 per person**. Population: BFS mean 2024 = 9,006,600 (end-2023 8,962,200, end-2024 9,051,000). Source: EFV FS-model OGD dataset fir_art_funk.csv (public household 'staat', 2024); cross-check 2023 shares vs EFV main publication Figure 4; BFS population releases.
+
+CH route — tax side = federal direct tax (ESTV Form 58c 2026, already implemented) **+ cantonal/communal = einfache Steuer × (Kantonssteuerfuss + Gemeindesteuerfuss)**. Place options and verified anchors (single, no children, taxable CHF 80,000 / 100,000, tax period 2026):
+
+| Place | Multipliers | Cantonal+communal 80k / 100k | Total with federal 80k / 100k |
+|---|---|---|---|
+| Zürich (city) | canton 95% + city 119% | 9,352 / 13,204 | **10,730 / 15,888** |
+| Bern (city) | canton 297.5% + city 154% | 15,387 / 20,273 | **16,766 / 22,958** |
+| Zug (city) | canton 78% + city 52% | 5,110 / 7,325 | **6,488 / 10,009** |
+| Baar (ZG) | canton 78% + commune 47.53% | 4,934 / 7,073 | **6,312 / 9,757** |
+
+Federal component alone: 1,378 at 80k / 2,684 at 100k. Implied spread at 100k: Baar 9,757 vs Bern 22,958 (2.4x). Sources: ESTV Form 58c 2026; ESTV 'Steuersatz und Steuerfuss' 3.4.1 (2026); Kantonsblätter ZH §35 / BE Art. 42; canton Zug Grundtarif 2026; ZH Steuerfuss 95% (Kantonsrat 15-12-2025); Stadt Bern 1.54; Zug commune 52% and Baar 47.53%; canton Zug StG §2 (78%, 2026-2029).
+
+CH uncertainties: consolidated scope excludes BVG/pension funds and private health insurers (BSV Grossrechnung differs); 2024 vintage vs 2025/26 for other countries; the 8 task-area groups were built from official function codes (0-9, 81) and validated against 2023 published shares; COFOG variant differs slightly (total 269,924, social 105,374); Stadt Zug's own site still lists the cantonal multiplier at 82% while StG §2 and ESTV say 78% (we use 78%); pure income tax only (no wealth tax, no social contributions); church tax would add ~10% of cantonal/communal in ZH/ZG examples.
 
 ## Split rule (implement exactly)
 
