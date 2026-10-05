@@ -36,6 +36,11 @@ control. Duty-line labels follow the language via `state.lang`. A **"Show all"
 comparison view** (NL: "Toon alles", EN: "Show all") tables every preset of the
 active country — ticket price, what it could cost, what it really costs, % to
 the government — with the current marginal rate; clicking a row loads that item.
+A second tab, **"Where does my money go?"** (NL: "Waar gaat mijn geld heen?"),
+compares your yearly income tax against what you cost in social security
+(per-capita baseline) and splits the surplus over the published 2026 budget
+categories — data and split rule in `countries/where-goes-2026.md`, disclaimer
+that taxes are not earmarked.
 
 ## Adding a country (4 steps)
 

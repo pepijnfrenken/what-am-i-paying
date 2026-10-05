@@ -211,6 +211,18 @@ async function main() {
       compareVisible: !g('compare').hidden,
       compareHeaders: Array.from(g('compare').querySelectorAll('th')).map(x => x.textContent),
       compareRows: g('compare').querySelectorAll('tbody tr').length,
+      recVisible: !g('view-receipt').hidden,
+      wgVisible: !g('view-where').hidden,
+      wgIncome: g('wg-income').value,
+      wgLabel: txt('wg-label'),
+      wgBelowVisible: !g('wg-below').hidden,
+      wgAboveVisible: !g('wg-above').hidden,
+      wgRows: g('wg-rows').children.length,
+      wgRowsText: Array.from(g('wg-rows').querySelectorAll('.wg-row')).map(r => r.textContent),
+      wgBelowText: txt('wg-below-text'),
+      wgExtraLabel: txt('wg-extra-label'),
+      tabReceiptLabel: txt('tab-receipt'),
+      tabWhereLabel: txt('tab-where'),
       bandOptions: Array.from(bt.options).map(o => o.value),
       itemOptions: Array.from(g('item').options).map(o => o.textContent),
       vatOptions: Array.from(g('vat').options).map(o => o.textContent),
@@ -259,6 +271,8 @@ async function main() {
   cross('UK: Mars receipt matches WAIP.compute', WAIP.countries.uk, snap, ['price', 'vat', 'under', 'gross', 'tax']);
   check('UK: no duty panel for Mars (duty-fields hidden)', snap.dutyFieldsHidden === true);
   check('UK: language control hidden (no copyEn)', snap.langVisible === false);
+  check('UK: tabs labelled Receipt / Where does my money go?', snap.tabReceiptLabel === 'Receipt' && snap.tabWhereLabel === 'Where does my money go?',
+    `${snap.tabReceiptLabel} | ${snap.tabWhereLabel}`);
 
   // pint preset
   let ok = await act(`(() => { const s = document.getElementById('item'); s.value = 'pint'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
@@ -402,6 +416,31 @@ async function main() {
   snap = await snapshot();
   check('NL: toggling off collapses the table and restores the label',
     snap.showAllLabel === 'Toon alles' && snap.compareVisible === false, snap.showAllLabel);
+  // where-does-it-go tab: labels, default, below/at/above, state retention
+  check('NL: tabs labelled Rekening / Waar gaat mijn geld heen?',
+    snap.tabReceiptLabel === 'Rekening' && snap.tabWhereLabel === 'Waar gaat mijn geld heen?' && snap.recVisible === true && snap.wgVisible === false,
+    `${snap.tabReceiptLabel} | ${snap.tabWhereLabel}`);
+  await act(`(() => { document.getElementById('tab-where').click(); return true; })()`);
+  snap = await snapshot();
+  check('NL: where tab — default = baseline rounded to 100 (€6,900), Dutch label',
+    snap.wgVisible === true && snap.recVisible === false && snap.wgIncome === '6900' && snap.wgLabel === 'Jouw inkomstenbelasting per jaar',
+    `income=${snap.wgIncome} label=${snap.wgLabel}`);
+  await act(`(() => { const el = document.getElementById('wg-income'); el.value = '5000'; el.dispatchEvent(new Event('input', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('NL: below baseline — gap note + amount', snap.wgBelowVisible === true && snap.wgAboveVisible === false && snap.wgBelowText.includes('Je betaalt minder dan je kost') && snap.wgBelowText.includes('€1878,02'),
+    snap.wgBelowText);
+  await act(`(() => { const el = document.getElementById('wg-income'); el.value = String(WAIP.budgetBaseline(WAIP.countries.nl)); el.dispatchEvent(new Event('input', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('NL: at baseline — 100% social, zero extra', snap.wgAboveVisible === true && snap.wgRows === 9 && snap.wgExtraLabel.includes('€0,00'), `${snap.wgRows} | ${snap.wgExtraLabel}`);
+  await act(`(() => { const el = document.getElementById('wg-income'); el.value = '9000'; el.dispatchEvent(new Event('input', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('NL: above baseline — stacked bar legend with 9 categories',
+    snap.wgAboveVisible === true && snap.wgBelowVisible === false && snap.wgRows === 9 && snap.wgRowsText.some(t => t.includes('Zorg')),
+    `rows=${snap.wgRows}`);
+  await act(`(() => { document.getElementById('tab-receipt').click(); return true; })()`);
+  snap = await snapshot();
+  check('NL: back on receipt tab — state kept (item krat, income 9000)',
+    snap.recVisible === true && snap.wgVisible === false && snap.item === 'krat' && snap.wgIncome === '9000', `${snap.item} | ${snap.wgIncome}`);
   const nlErrs = snapshotErrors();
   check('NL: zero console errors / uncaught exceptions', nlErrs.length === 0, nlErrs.join(' | '));
 
@@ -409,6 +448,8 @@ async function main() {
   await navigate(`${BASE}/?c=ch`);
   snap = await snapshot();
   check('CH: page renders (German title)', snap.title.includes('Was zahle ich wirklich?'), snap.title);
+  check('CH: tabs labelled Kassenbon / Wohin geht mein Geld?', snap.tabReceiptLabel === 'Kassenbon' && snap.tabWhereLabel === 'Wohin geht mein Geld?',
+    `${snap.tabReceiptLabel} | ${snap.tabWhereLabel}`);
   check('CH: country selector lists nl/uk/ch/bg', snap.countries.length === 4 && snap.countries.join(',') === 'nl:Nederland,uk:United Kingdom,ch:Schweiz,bg:България', snap.countries.join(','));
   check('CH: default item Bier 5 dl; gross CHF 11.08 (dot decimals)',
     snap.r.item === 'Bier 5 dl in der Bar, 12°P' && snap.r.gross === 'CHF 11.08' &&
@@ -446,6 +487,8 @@ async function main() {
   await navigate(`${BASE}/?c=bg`);
   snap = await snapshot();
   check('BG: page renders (Bulgarian title)', snap.title.includes('Какво всъщност плащам?'), snap.title);
+  check('BG: tabs labelled Касов бон / Къде отива данъкът ми?', snap.tabReceiptLabel === 'Касов бон' && snap.tabWhereLabel === 'Къде отива данъкът ми?',
+    `${snap.tabReceiptLabel} | ${snap.tabWhereLabel}`);
   check('BG: country selector lists nl/uk/ch/bg', snap.countries.length === 4 && snap.countries.join(',') === 'nl:Nederland,uk:United Kingdom,ch:Schweiz,bg:България', snap.countries.join(','));
   check('BG: default item бира; gross €5,15 (comma decimals) @ 22,4 %',
     snap.r.item.includes('Бира') && snap.r.gross === '€5,15' && /^€\d+,\d{2}$/.test(snap.r.gross),
@@ -496,6 +539,13 @@ async function main() {
   await act(`(() => { document.getElementById('show-all').click(); return true; })()`);
   snap = await snapshot();
   check('LANG: collapsing in English restores Show all', snap.showAllLabel === 'Show all' && snap.compareVisible === false, snap.showAllLabel);
+  // English where view
+  await act(`(() => { document.getElementById('tab-where').click(); return true; })()`);
+  snap = await snapshot();
+  check('LANG: English where view (label + tabs)',
+    snap.wgLabel === 'Your income tax per year' && snap.tabReceiptLabel === 'Receipt' && snap.tabWhereLabel === 'Where does my money go?' && snap.wgIncome === '6900',
+    `${snap.wgLabel} | ${snap.wgIncome}`);
+  await act(`(() => { document.getElementById('tab-receipt').click(); return true; })()`);
   await act(`(() => { const s = document.getElementById('country'); s.value = 'ch'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   snap = await snapshot();
   check('LANG: country switch preserves English choice (NL→CH)', snap.langValue === 'en' && snap.r.vatL === 'Minus VAT (8.1%)' && snap.langOptions.join(',') === 'Deutsch,English',
