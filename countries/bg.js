@@ -33,6 +33,7 @@
       dizel:     { name: 'Дизел (1 L)', nameEn: 'Diesel (1 L)', price: 1.91, vat: 0.2, kind: 'fuel', panel: { fueltype: 'diesel', litres: 1 } },
       tok:       { name: 'Ток (1 kWh)', nameEn: 'Electricity (1 kWh)', price: 0.154, vat: 0.2, kind: 'energy', panel: { kwh: 1, m3: 0 }, noDutyLabel: 'Домакинствата са освободени от акциз върху електроенергията', noDutyLabelEn: 'Households are exempt from excise duty on electricity' },
       hlyab:     { name: 'Хляб (500 g)', nameEn: 'Bread (500 g)', price: 1.00, vat: 0.2, kind: 'none' },
+      bigmac:    { name: 'Биг Мак (в ресторанта)', nameEn: 'Big Mac (in the restaurant)', price: 6.10, vat: 0.2, kind: 'none' },
       custom:    { name: 'Друго', nameEn: 'Something else', price: 10.00, vat: 0.2, kind: 'custom', panel: { cfix: 0, cpct: 0 } }
     },
     taxBands: [

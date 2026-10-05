@@ -43,6 +43,7 @@
       petrol:  { name: 'Petrol, 1 litre', price: 1.45, vat: 0.20, kind: 'fuel', panel: { litres: 1 } },
       vape:    { name: 'Vape liquid (10ml)', price: 5.00, vat: 0.20, kind: 'vape', panel: { vml: 10 } },
       bread:   { name: 'Loaf of bread (zero-rated)', price: 1.40, vat: 0, kind: 'none' },
+      bigmac:  { name: 'Big Mac (eat-in)', price: 5.49, vat: 0.20, kind: 'none' },
       custom:  { name: 'Something else', price: 10.00, vat: 0.20, kind: 'custom', panel: { cfix: 0, cpct: 0 } }
     },
     taxBands: [

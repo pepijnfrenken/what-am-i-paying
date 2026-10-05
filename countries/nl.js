@@ -48,6 +48,7 @@
       petrol:  { name: 'Benzine, 1 liter (sept 2026, CBS)', nameEn: 'Petrol, 1 litre (Sep 2026, CBS)', price: 2.45, vat: 0.21, kind: 'fuel', panel: { fueltype: 'petrol', litres: 1 } },
       cola:    { name: 'Blikje cola (330ml)', nameEn: 'Can of cola (330 ml)', price: 0.95, vat: 0.21, kind: 'drinks', panel: { dml: 330, dband: 'regular' } },
       bread:   { name: 'Brood (9% btw)', nameEn: 'Bread (9% VAT)', price: 1.30, vat: 0.09, kind: 'none' },
+      bigmac:  { name: 'Big Mac (in het restaurant)', nameEn: 'Big Mac (in the restaurant)', price: 6.10, vat: 0.09, kind: 'none' },
       power:   { name: 'Stroom, 1 kWh', nameEn: 'Electricity, 1 kWh', price: 0.26, vat: 0.21, kind: 'energy', panel: { kwh: 1, m3: 0 } },
       vliegticket: { name: 'Vliegticket (vliegbelasting per vertrek)', nameEn: 'Flight ticket (departure tax per passenger)', price: 100.00, vat: 0.21, kind: 'custom', fixLabel: 'Vliegbelasting (€ 30,25 per vertrekkende passagier)', fixLabelEn: 'Departure tax (\u20ac 30.25 per departing passenger)', panel: { cfix: 30.25, cpct: 0 } },
       autoverzekering: { name: 'Autoverzekering (jaarpremie, indicatief)', nameEn: 'Car insurance (annual premium, indicative)', price: 600.00, vat: 'vrij', kind: 'custom', pctLabel: 'Assurantiebelasting 21% van de premie', pctLabelEn: 'Assurance duty 21% of the premium', panel: { cfix: 0, cpct: 21 } },

@@ -31,6 +31,7 @@
       diesel:    { name: 'Diesel, 1 L', nameEn: 'Diesel, 1 L', price: 2.41, vat: 0.081, kind: 'fuel', panel: { fueltype: 'diesel', litres: 1 } },
       strom:     { name: 'Strom 1 kWh', nameEn: 'Electricity 1 kWh', price: 0.277, vat: 0.081, kind: 'energy', panel: { kwh: 1, m3: 0 }, noDutyLabel: 'Keine Bundessteuer auf Strom', noDutyLabelEn: 'No federal duty on electricity' },
       brot:      { name: 'Brot 500 g', nameEn: 'Bread 500 g', price: 1.00, vat: 0.026, kind: 'none' },
+      bigmac:    { name: 'Big Mac (im Restaurant)', nameEn: 'Big Mac (in the restaurant)', price: 7.20, vat: 0.081, kind: 'none' },
       hotel:     { name: 'Hotel\u00fcbernachtung', nameEn: 'Hotel night', price: 120.00, vat: 0.038, kind: 'none' },
       custom:    { name: 'Anderes', nameEn: 'Other', price: 10.00, vat: 0.081, kind: 'custom', panel: { cfix: 0, cpct: 0 } }
     },
