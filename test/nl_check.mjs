@@ -82,5 +82,30 @@ check('mineraalwater 330ml -> 0', duty({ price: 0.95, vatRate: 0.21, marginal: 0
   check('negen banden + Custom optie', nl.taxBands.length === 9);
 }
 
+// --- vliegticket / autoverzekering / boek (2026 presets) --------------------
+{
+  const got = WAIP.compute(nl, { price: 100, vatRate: 0.21, marginal: 0.42, kind: 'custom', panel: { cfix: 30.25, cpct: 0 }, preset: nl.presets.vliegticket });
+  check('vliegticket: vliegbelasting 30,25 exact', close(got.duty, 30.25), `duty=${got.duty}`);
+  check('vliegticket: regel fiks via fixLabel', got.dutyLines.length === 1 && got.dutyLines[0].label === 'Vliegbelasting (€ 30,25 per vertrekkende passagier)',
+    got.dutyLines.map(l => l.label).join(' | '));
+}
+{
+  const got = WAIP.compute(nl, { price: 600, vatRate: 0, marginal: 0.42, kind: 'custom', panel: { cfix: 0, cpct: 21 }, preset: nl.presets.autoverzekering });
+  check('autoverzekering 600: assurantiebelasting 126,00, btw 0', close(got.duty, 126.00) && got.vat === 0, `duty=${got.duty} vat=${got.vat}`);
+  check('autoverzekering: regel via pctLabel', got.dutyLines.length === 1 && got.dutyLines[0].label === 'Assurantiebelasting 21% van de premie',
+    got.dutyLines.map(l => l.label).join(' | '));
+}
+{
+  const got = WAIP.compute(nl, { price: 15, vatRate: 0.09, marginal: 0.42, kind: 'none', panel: {} });
+  check('boek 15 @9%: btw = 15 x 9/109 = 1,2385..., accijns 0', close(got.vat, 15 * 0.09 / 1.09) && got.duty === 0, `vat=${got.vat} duty=${got.duty}`);
+}
+// fallback: custom state zonder preset houdt de generieke labels
+{
+  const got = WAIP.compute(nl, { price: 100, vatRate: 0.21, marginal: 0.42, kind: 'custom', panel: { cfix: 5, cpct: 10 } });
+  check('custom zonder preset: generieke labels vallen terug', got.dutyLines.length === 2 &&
+    got.dutyLines[0].label === 'Vaste heffing' && got.dutyLines[1].label === 'Heffing 10,0% van prijs',
+    got.dutyLines.map(l => l.label).join(' | '));
+}
+
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);
 process.exit(fails === 0 ? 0 : 1);
