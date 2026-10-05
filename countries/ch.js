@@ -50,21 +50,58 @@
     return tax;
   }
 
+  // Kantonale einfache Steuer 2026 (single, no children), tariff arrays with
+  // sources in countries/ch-cantonal-2026.md. Each step: [from, to, base,
+  // rate]; tax = base + rate x (I - from). ZG rounds taxable income DOWN to
+  // the full CHF 100 before the tariff (official handling); ZH/BE use the
+  // continuous fit (bounded by one CHF-100 step increment per the doc).
+  const CANTON_TARIFFS = {
+    zh: { roundDown: false, steps: [[0,7000,0,0],[7000,12000,0,0.02],[12000,16800,100,0.03],[16800,24800,244,0.04],[24800,34500,564,0.05],[34500,45700,1049,0.06],[45700,58800,1721,0.07],[58800,76400,2638,0.08],[76400,110400,4046,0.09],[110400,144100,7106,0.1],[144100,197400,10476,0.11],[197400,266700,16339,0.12],[266700,null,24655,0.13]] },
+    be: { roundDown: false, steps: [[0,3300,0,0.0195],[3300,6600,64.35,0.029],[6600,16400,160.05,0.036],[16400,32500,512.85,0.0415],[32500,59400,1181,0.0445],[59400,86300,2378.05,0.05],[86300,113200,3723.05,0.056],[113200,140100,5229.45,0.0575],[140100,167000,6776.2,0.059],[167000,193900,8363.3,0.0605],[193900,231600,9990.75,0.0615],[231600,318500,12309.3,0.063],[318500,470600,17784,0.064],[470600,null,27518.4,0.065]] },
+    zg: { roundDown: true, steps: [[0,1100,0,0.005],[1100,3300,5.5,0.01],[3300,6100,27.5,0.02],[6100,10100,83.5,0.03],[10100,15300,203.5,0.0325],[15300,21100,372.5,0.035],[21100,26900,575.5,0.04],[26900,34900,807.5,0.045],[34900,46400,1167.5,0.055],[46400,59700,1800,0.055],[59700,74700,2531.5,0.065],[74700,94800,3506.5,0.08],[94800,120100,5114.5,0.1],[120100,149900,7644.5,0.09],[149900,null,10326.5,0.08]] }
+  };
+
+  // Kantonale einfache Steuer (pure). Exposed for the checker via WAIP.chSimpleTax.
+  function simpleTax(canton, income) {
+    const t = CANTON_TARIFFS[canton];
+    let x = Math.max(0, income);
+    if (t.roundDown) x = Math.floor(x / 100) * 100;
+    for (const [from, to, base, rate] of t.steps) {
+      if (x >= from && (to == null || x <= to)) return base + rate * (x - from);
+    }
+    return 0;
+  }
+
+  const PLACES = [
+    { key: 'bund', label: 'Nur Bundessteuer', labelEn: 'Federal only' },
+    { key: 'zh', canton: 'zh', cantonMul: 0.95, communeMul: 1.19, label: 'Z\u00fcrich (Stadt)', labelEn: 'Z\u00fcrich (city)' },
+    { key: 'be', canton: 'be', cantonMul: 2.975, communeMul: 1.54, label: 'Bern (Stadt)', labelEn: 'Bern (city)' },
+    { key: 'zg', canton: 'zg', cantonMul: 0.78, communeMul: 0.52, label: 'Zug (Stadt)', labelEn: 'Zug (city)' },
+    { key: 'baar', canton: 'zg', cantonMul: 0.78, communeMul: 0.4753, label: 'Baar (ZG)', labelEn: 'Baar (ZG)' }
+  ];
+
+  // Pure cantonal einfache-Steuer lookup (exposed for test/ch_check.mjs).
+  WAIP.chSimpleTax = simpleTax;
+
   WAIP.registerCountry({
     code: 'ch',
     ratesStatus: 'ok',
     salaryDefault: 100000,
-    // Bundesvoranschlag 2026 (CHF millions; federal only), see where-goes-2026.md
+    places: PLACES,
+    placeDefault: 'bund',
+    // Konsolidierte Staatsrechnung 2024 (CHF millions; Bund + Kantone +
+    // Gemeinden + Sozialversicherungen, transfers eliminated), see
+    // where-goes-2026.md; supersedes the former federal-only scope.
     budget: {
-      social: 31823, population: 9127100,
+      social: 104845, population: 9006600,
       cats: {
-        finanzen: { v: 15116, label: 'Finanzen & Steuern (Finanzausgleich, Kantonsanteile, Zinsen)', labelEn: 'Finance & taxes (fiscal equalisation, cantonal shares, interest)' },
-        verkehr: { v: 10734, label: 'Verkehr', labelEn: 'Transport' },
-        bildung: { v: 9000, label: 'Bildung & Forschung', labelEn: 'Education & research' },
-        sicherheit: { v: 7818, label: 'Sicherheit & Verteidigung', labelEn: 'Security & defence' },
-        landwirtschaft: { v: 3710, label: 'Landwirtschaft & Ern\u00e4hrung', labelEn: 'Agriculture & food' },
-        ausland: { v: 3807, label: 'Beziehungen zum Ausland (IZA)', labelEn: 'Foreign relations & cooperation' },
-        uebrige: { v: 9108, label: '\u00dcbrige Aufgabengebiete (Kultur, Gesundheit, Umwelt, Wirtschaft)', labelEn: 'Other task areas (culture, health, environment, economy)' }
+        bildung: { v: 47928, label: 'Bildung & Forschung', labelEn: 'Education & research' },
+        sicherheit: { v: 20092, label: '\u00d6ffentliche Ordnung, Sicherheit & Verteidigung', labelEn: 'Public order, security & defence' },
+        verkehr: { v: 19634, label: 'Verkehr & Telekommunikation', labelEn: 'Transport & telecom' },
+        gesundheit: { v: 19138, label: 'Gesundheit', labelEn: 'Health' },
+        finanzen: { v: 6006, label: 'Finanzen & Steuern (v.a. Zinsen)', labelEn: 'Finance & taxes (mainly interest)' },
+        landwirtschaft: { v: 4381, label: 'Landwirtschaft & Ern\u00e4hrung', labelEn: 'Agriculture & food' },
+        uebrige: { v: 40919, label: '\u00dcbrige (Verwaltung, Kultur, Umwelt, Wirtschaft)', labelEn: 'Other (administration, culture, environment, economy)' }
       }
     },
     presets: {
@@ -133,9 +170,17 @@
       }
       return out;
     },
-    // Federal direct tax only (no AHV/ALV, no cantonal or communal tax).
-    incomeTax(gross) {
-      return federalTax(Math.max(0, num(gross)));
+    // Federal + place-dependent cantonal/communal income tax (single, no
+    // children). opts.place selects the place (default 'bund' = federal only);
+    // cantonal part = einfache Steuer x (Kantonssteuerfuss + Gemeindesteuerfuss).
+    incomeTax(gross, opts) {
+      const I = Math.max(0, num(gross));
+      const fed = federalTax(I);
+      const place = opts && opts.place;
+      if (!place || place === 'bund') return fed;
+      const p = PLACES.find(x => x.key === place);
+      if (!p || !p.canton) return fed;
+      return fed + simpleTax(p.canton, I) * (p.cantonMul + p.communeMul);
     },
     copy: {
       langLabel: 'Sprache',
@@ -170,9 +215,9 @@
         multiplier: 'Wie viel Mal mehr du verdienst als der Preis ohne s\u00e4mtliche Steuern.',
         duty: 'Alle Abgaben neben der MWST: Biersteuer, Tabaksteuer, Mineral\u00f6lsteuer usw. Die MWST steht separat.',
         marginal: 'Der Satz stammt aus der gew\u00e4hlten Stufe und gilt f\u00fcr dein gesamtes Einkommen \u00fcber der Schwelle \u2014 eine N\u00e4herung, keine vollst\u00e4ndige Stufenrechnung.',
-        route: 'Steuer auf dieses Einkommen: direkte Bundessteuer 2026 (Tarif 58c, ledig) \u2014 nur der Bund; Kantons- und Gemeindesteuern fehlen.',
-        baseline: 'Was der Bund durchschnittlich pro Person f\u00fcr Sozialversicherungen ausgibt (2026). Zahlst du weniger Steuern, zahlen andere den Rest.',
-        split: 'Dein Zusatzbeitrag wird proportional \u00fcber die Budgetposten des publizierten Bundesvoranschlags verteilt. Steuern sind nicht zweckgebunden.',
+        route: 'Steuer auf dieses Einkommen: direkte Bundessteuer 2026 (Tarif 58c) plus Kantons- und Gemeindesteuer \u00fcber die einfache Steuer mit den Steuerf\u00fcssen des gew\u00e4hlten Orts. Die alte Sicht zeigte nur den Bund \u2014 Bundeskantone/-gemeinden machen rund 2/3 der Steuer aus (Baar CHF 9.757 vs Bern CHF 22.958 bei 100k = 2,4\u00d7).',
+        baseline: 'Was der Staat (Bund, Kantone, Gemeinden, Sozialversicherungen) im Schnitt pro Person f\u00fcr soziale Sicherheit ausgibt (2024). Zahlst du weniger Steuern, zahlen andere den Rest.',
+        split: 'Dein Zusatzbeitrag wird proportional \u00fcber die Aufgabenbereiche der konsolidierten Staatsrechnung verteilt. Steuern sind nicht zweckgebunden.',
         effRate: 'Der effektive Satz ist Steuer geteilt durch Bruttoeinkommen \u2014 nicht der Grenzsatz deiner obersten Stufe.',
         compare: 'Alle Produkte mit ihren Standardwerten beim gew\u00e4hlten Grenzsatz: Preis, was es kosten k\u00f6nnte, was es wirklich kostet und der Anteil an den Staat.'
       },
@@ -181,7 +226,8 @@
         taxLabel: 'Deine Einkommenssteuer pro Jahr',
         directToggle: 'oder Steuer direkt eingeben',
         grossName: 'Bruttojahreslohn',
-        taxName: 'Direkte Bundessteuer',
+        taxName: 'Einkommenssteuer',
+        placeLabel: 'Ort',
         directTag: '(direkt eingegeben)',
         incomeDefaultNote: 'Standard: ca. CHF 100.000 steuerbar \u2014 entspricht der Standardbande Z\u00fcrich.',
         yourLabel: 'Deine Steuer',
@@ -191,8 +237,8 @@
         belowText: 'Du zahlst weniger, als du kostest \u2014 den Rest zahlen andere',
         legendTitle: 'Was dein Zusatzbeitrag finanziert (Budgetaufteilung)',
         pctOfExtra: 'des Zusatzbeitrags',
-        sources: 'Quelle: EFV, Voranschlag 2027 mit IAFP 2028\u20132030, Band 1 (Spalte VA 2026); efv.admin.ch budget 2026; BFS Bevölkerung 9.127.100 (31-12-2025).',
-        scope: 'Nur der Bundesvoranschlag 2026 \u2014 Kantone und Gemeinden tragen rund zwei Drittel der gesamten Staatsausgaben und sind hier nicht enthalten.',
+        sources: 'Quelle: EFV Finanzstatistik 2024 (Haushalt \u201eStaat\u201c), FIR ART FNK; ESTV Form 58c 2026; ESTV \u201eSteuersatz und Steuerfuss\u201c 3.4.1 (2026); Kantonsbl\u00e4tter ZH/BE, Zug StG \u00a72; BFS Bev\u00f6lkerung 2024.',
+        scope: 'Konsolidierte Staatsrechnung 2024 \u2014 Bund + Kantone + Gemeinden + Sozialversicherungen: insgesamt CHF 29.194 pro Person. Steuer nach Wohnort (Bundes-, Kantons- und Gemeindesteuer); \u00e4ltere Ausf\u00fchrung (nur Bund) untersch\u00e4tzte alles.',
         disclaimer: 'Steuern sind nicht zweckgebunden; diese Aufteilung folgt dem publizierten Budget.'
       },
       noDuty: 'Keine Bundesabgabe auf dieses Produkt',
@@ -261,9 +307,9 @@
         multiplier: 'How many times more you earn than the price with all taxes removed.',
         duty: 'Every levy besides VAT: beer tax, tobacco tax, mineral oil tax and so on. VAT is shown separately.',
         marginal: 'The rate comes from the band you picked and applies to all of your income above the threshold \u2014 an approximation, not a full bracket calculation.',
-        route: 'Tax on this income: Swiss federal direct tax 2026 (single-person tariff) \u2014 federal only; cantonal and municipal taxes are not included.',
-        baseline: 'What the federal government spends per person on social security on average (2026). If you pay less tax than that, others cover the rest.',
-        split: 'Your extra contribution is distributed proportionally over the budget categories of the published federal budget. Taxes are not earmarked.',
+        route: 'Tax on this income: Swiss federal direct tax 2026 (single-person tariff) plus cantonal and communal tax via the einfache Steuer with the multipliers of the selected place. The old view showed federal only \u2014 cantons/communes make up about two thirds of the tax (Baar CHF 9,757 vs Bern CHF 22,958 at 100k = 2.4\u00d7).',
+        baseline: 'What the state (federal, cantons, communes, social insurance) spends per person on social security on average (2024). If you pay less tax than that, others cover the rest.',
+        split: 'Your extra contribution is distributed proportionally over the task areas of the consolidated public accounts. Taxes are not earmarked.',
         effRate: 'The effective rate is tax divided by gross income \u2014 not the marginal rate of your top band.',
         compare: 'Every item at its default values with the selected marginal rate: price, what it could cost, what it really costs, and the share that goes to the state.'
       },
@@ -272,7 +318,8 @@
         taxLabel: 'Your income tax per year',
         directToggle: 'or enter the tax directly',
         grossName: 'Gross salary',
-        taxName: 'Federal direct tax',
+        taxName: 'Income tax',
+        placeLabel: 'Place',
         directTag: '(entered directly)',
         incomeDefaultNote: 'Default: ~CHF 100,000 taxable \u2014 matches the Z\u00fcrich standard band.',
         yourLabel: 'Your tax',
@@ -282,8 +329,8 @@
         belowText: 'You pay less than you cost \u2014 others cover the rest',
         legendTitle: 'What your extra contribution finances (budget split)',
         pctOfExtra: 'of the extra contribution',
-        sources: 'Source: EFV Voranschlag 2027 with IAFP 2028\u20132030, Volume 1 (VA 2026 column); efv.admin.ch budget 2026; BFS population 9,127,100 (31-12-2025).',
-        scope: 'Federal budget 2026 only \u2014 cantons and communes run about two thirds of total public spending and are not in this split.',
+        sources: 'Source: EFV Finanzstatistik 2024 (household \u201cStaat\u201d), FIR ART FNK; ESTV Form 58c 2026; ESTV \u201cSteuersatz und Steuerfuss\u201d 3.4.1 (2026); ZH/BE cantonal gazettes, canton Zug StG \u00a72; BFS 2024 population.',
+        scope: 'Consolidated public accounts 2024 \u2014 federal + cantons + communes + social insurance: CHF 29,194 total per person. Tax by place of residence (federal, cantonal and communal); the earlier federal-only scope understated everything.',
         disclaimer: 'Taxes are not earmarked; this split follows the published budget.'
       },
       noDuty: 'No federal duty on this item',

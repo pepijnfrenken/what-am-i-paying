@@ -98,10 +98,11 @@
 
   // ---------------------------------------------------------------- comparisons
   // Annual income tax per country. Each module ships its own sourced tax
-  // function (loonheffing / UK income tax excl. NI / ДОД / direkte
-  // Bundessteuer); no marginal-rate placeholder.
-  WAIP.incomeTax = function (cfg, gross) {
-    return cfg.incomeTax ? cfg.incomeTax(gross) : 0;
+  // function (loonheffing / UK income tax excl. NI / ДОД / Swiss federal +
+  // place-dependent cantonal/communal). opts.place selects the place for
+  // countries with a place selector.
+  WAIP.incomeTax = function (cfg, gross, opts) {
+    return cfg.incomeTax ? cfg.incomeTax(gross, opts) : 0;
   };
   // Pure split for the "where does my money go" view. Rule (where-goes-2026.md):
   // baseline = social x 1e6 / population; amount below baseline -> gap; at/above
@@ -343,17 +344,34 @@
       }
       langSel.value = lang;
     }
+    // Place selector (CH: federal only / cantons). Hidden when a country has
+    // no places (mirrors the language control).
+    function buildPlaceOptions() {
+      const wrap = $('wg-place-wrap');
+      if (!cfg.places || !cfg.places.length) { wrap.hidden = true; return; }
+      wrap.hidden = false;
+      const sel = $('wg-place');
+      const current = sel.value || cfg.placeDefault;
+      sel.innerHTML = '';
+      for (const p of cfg.places) {
+        const o = document.createElement('option'); o.value = p.key; o.textContent = (lang === 'en' && p.labelEn) || p.label; sel.appendChild(o);
+      }
+      $('wg-place-label').textContent = labelCopy(cfg).wheregoes.placeLabel || 'Ort';
+      sel.value = cfg.places.some(p => p.key === current) ? current : cfg.placeDefault;
+      $('wg-place-label').hidden = false;
+    }
     function renderCurrent(preserveItem) {
       if (lang === 'en' && !cfg.copyEn) lang = 'native';
       const cur = preserveItem && Object.prototype.hasOwnProperty.call(cfg.presets, $('item').value)
         ? $('item').value : Object.keys(cfg.presets)[0];
-      applyStaticCopy(); loadVat(); loadTaxBands(); loadPresets(); buildLangOptions(); updateShowAllUI();
+      applyStaticCopy(); loadVat(); loadTaxBands(); loadPresets(); buildLangOptions(); buildPlaceOptions(); updateShowAllUI();
       $('item').value = cur;
       applyPreset(cur);
       if (!preserveItem) {
         $('wg-income').value = String(cfg.salaryDefault || 0);
         $('wg-mode').checked = false;
         $('wg-tax').value = '';
+        if (cfg.places && cfg.places.length) $('wg-place').value = cfg.placeDefault;
       }
       if (wgActive) renderWhere();
     }
@@ -449,10 +467,13 @@
         route = `${W.taxName} ${f(amount)} ${W.directTag}`;
       } else {
         const gross = WAIP.num($('wg-income').value);
-        amount = WAIP.incomeTax(cfg, gross);
+        const place = cfg.places && cfg.places.length ? $('wg-place').value : null;
+        amount = WAIP.incomeTax(cfg, gross, { place });
         let eff = gross > 0 ? (amount / gross * 100).toFixed(1).replace(/\.0$/, '') : '\u2013';
         if (cfg.currency.decimalComma) eff = eff.replace('.', ',');
-        route = `${W.grossName} ${f(gross)} \u2192 ${W.taxName} ${f(amount)} (${eff}%)`;
+        const p = place && cfg.places.find(x => x.key === place);
+        const placeName = p ? ((lang === 'en' && p.labelEn) || p.label) : null;
+        route = (placeName ? placeName + ': ' : '') + `${W.grossName} ${f(gross)} \u2192 ${W.taxName} ${f(amount)} (${eff}%)`;
       }
       $('wg-route').textContent = route;
       const s = WAIP.budgetSplit(cfg, amount);
@@ -507,9 +528,11 @@
     });
     $('wg-income').addEventListener('input', renderWhere);
     $('wg-tax').addEventListener('input', renderWhere);
+    $('wg-place').addEventListener('change', renderWhere);
     $('wg-mode').addEventListener('change', () => {
       if ($('wg-mode').checked) {
-        $('wg-tax').value = String(Math.round(WAIP.incomeTax(cfg, $('wg-income').value)));
+        $('wg-tax').value = String(Math.round(WAIP.incomeTax(cfg, $('wg-income').value,
+          { place: cfg.places && cfg.places.length ? $('wg-place').value : null })));
       }
       renderWhere();
     });
@@ -568,7 +591,7 @@
     langSel.addEventListener('change', () => { lang = langSel.value; renderCurrent(true); });
     $('item').addEventListener('change', () => applyPreset($('item').value));
     document.querySelectorAll('input,select').forEach(el => {
-      if (el === langSel || el === $('wg-income') || el === $('wg-tax') || el === $('wg-mode')) return;
+      if (el === langSel || el === $('wg-income') || el === $('wg-tax') || el === $('wg-mode') || el === $('wg-place')) return;
       el.addEventListener('input', () => { if (el !== csel && el !== $('item')) calc(); });
       el.addEventListener('change', () => { if (el !== csel && el !== $('item')) calc(); });
     });
