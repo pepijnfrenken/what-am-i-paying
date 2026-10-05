@@ -93,5 +93,12 @@ check('Dezimalpunkt (kein decimalComma)', ch.currency.decimalComma !== true && c
   check('wg: Kategorie proportional (finanzen)', close(s.rows.find(r => r.key === 'finanzen').v, X * ch.budget.cats.finanzen.v / extrasTotal));
 }
 
+// --- Wocheneinkäufe 2026 (reduced 2.6 %) ------------------------------------
+{
+  const got = WAIP.compute(ch, { price: 147.00, vatRate: 0.026, marginal: 0.323, kind: 'none', panel: {} });
+  // 2,6 % MWST: bw = prijs x 2,6/102,6 (denominator 1.026, NOT 108.1)
+  check('Wocheneinkäufe 147 @2.6%: MWST = 147 x 2.6/102.6 = 3,725146..., duty 0', close(got.vat, 147 * 2.6 / 102.6) && got.duty === 0, `vat=${got.vat} duty=${got.duty}`);
+}
+
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);
 process.exit(fails === 0 ? 0 : 1);

@@ -129,5 +129,11 @@ check('mineraalwater 330ml -> 0', duty({ price: 0.95, vatRate: 0.21, marginal: 0
   check('wg: elke categorie = X x cat/extrasTotal (zorg)', close(s.rows.find(r => r.key === 'zorg').v, X * nl.budget.cats.zorg.v / extrasTotal));
 }
 
+// --- weekboodschappen 2026 (dominant 9 %) ------------------------------------
+{
+  const got = WAIP.compute(nl, { price: 135.00, vatRate: 0.09, marginal: 0.42, kind: 'none', panel: {} });
+  check('boodschappen 135 @9%: btw = 135 x 9/109 = 11,146789..., accijns 0', close(got.vat, 135 * 9 / 109) && got.duty === 0, `vat=${got.vat} duty=${got.duty}`);
+}
+
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);
 process.exit(fails === 0 ? 0 : 1);

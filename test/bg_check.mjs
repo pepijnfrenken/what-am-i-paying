@@ -97,5 +97,11 @@ check('хлябът е 20 % ДДС (без намалено)', bg.presets.hlyab.
   check('wg: категория пропорционална (zdrave)', close(s.rows.find(r => r.key === 'zdrave').v, X * bg.budget.cats.zdrave.v / extrasTotal));
 }
 
+// --- седмични покупки 2026 (20 % ДДС) ----------------------------------------
+{
+  const got = WAIP.compute(bg, { price: 69.00, vatRate: 0.2, marginal: 0.224, kind: 'none', panel: {} });
+  check('покупки 69 @20%: ДДС = 69 x 20/120 = 11,5, акциз 0', close(got.vat, 69 * 20 / 120) && got.duty === 0, `vat=${got.vat} duty=${got.duty}`);
+}
+
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);
 process.exit(fails === 0 ? 0 : 1);

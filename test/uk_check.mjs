@@ -81,6 +81,13 @@ for (const [key, preset] of Object.entries(uk.presets)) {
   console.log(`anchor: Big Mac 5.49 -> vat ${got.vat.toFixed(6)} (5.49*20/120=${(5.49 * 20 / 120).toFixed(6)}), duty ${got.duty} ${ok ? 'ok' : 'FAIL'}`);
   if (!ok) fails++;
 }
+// hand-computed anchor: weekly groceries 73.70 @ 0% VAT, no duty
+{
+  const got = WAIP.compute(uk, { price: 73.70, vatRate: 0, marginal, kind: 'none', panel: {} });
+  const ok = Math.abs(got.vat) < 1e-9 && got.duty === 0;
+  console.log(`anchor: groceries 73.70 -> vat ${got.vat}, duty ${got.duty} ${ok ? 'ok' : 'FAIL'}`);
+  if (!ok) fails++;
+}
 // budget split anchors (TME FY2025-26, where-goes-2026.md)
 {
   const baseline = uk.budget.social * 1e6 / uk.budget.population;
