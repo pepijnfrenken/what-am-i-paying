@@ -4,7 +4,8 @@
 //   1. its module, rates doc (non-empty), extra docs and test/<code>_check.mjs exist
 //   2. the module registers and satisfies the contract (test/lib/contract.mjs)
 //   3. test/<code>_check.mjs exits 0
-// Then test/dom_check.mjs (real browser) runs once for the whole site.
+// Then the scaffolder's stub module is checked against the same contract, and
+// test/dom_check.mjs (real browser) runs once for the whole site.
 //
 // Run:   node test/run_all.mjs            (everything; what CI runs)
 //        node test/run_all.mjs --no-dom   (skip the browser check locally)
@@ -73,6 +74,32 @@ for (const entry of registry) {
     failures.push(...problems.map(p => `${entry.code}: ${p}`));
   } else {
     console.log(`PASS  ${label}  [ ${entry.ratesDoc} | contract ok | ${checker}: ${summary} ]`);
+  }
+}
+
+// The scaffolder's stub module must satisfy the same contract, so a new
+// country starts from something that loads and renders.
+{
+  const { renderCountry } = await import('../scripts/new-country.mjs');
+  const code = 'zz';
+  const stub = renderCountry({ code, name: 'Stub', nameEn: 'Stub', symbol: '¤ ', locale: 'en', year: 2000 });
+  let problems;
+  WAIP.registry.push(stub.entry);
+  try {
+    vm.runInThisContext(stub.files[`countries/${code}.js`], { filename: `scaffold:countries/${code}.js` });
+    problems = checkContract(WAIP.countries[code], stub.entry);
+  } catch (e) {
+    problems = [`stub module threw while loading: ${e.message}`];
+  } finally {
+    WAIP.registry.pop();
+    delete WAIP.countries[code];
+  }
+  if (problems.length) {
+    console.log('FAIL  scaffold (scripts/new-country.mjs)');
+    for (const p of problems) console.log(`      - contract: ${p}`);
+    failures.push(...problems.map(p => `scaffold: contract: ${p}`));
+  } else {
+    console.log('PASS  scaffold  [ scripts/new-country.mjs stub satisfies the contract ]');
   }
 }
 
