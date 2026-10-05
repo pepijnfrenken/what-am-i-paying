@@ -142,6 +142,24 @@
       }
       return out;
     },
+    // Loonheffing 2026, alleenstaand werknemer <AOW (nl-rates-2026.md):
+    // schijven 35,75 / 37,56 / 49,50 minus algemene heffingskorting (max
+    // € 3.115; afbouw 6,398% boven € 29.736) minus arbeidskorting (max
+    // € 5.685; opbouw 8,324% t/m 11.965, 31,009% t/m 25.845, 1,950% t/m
+    // 45.592; afbouw 6,510% boven 45.592 tot nul bij 132.920).
+    incomeTax(gross) {
+      const I = Math.max(0, num(gross));
+      const bracket = 0.3575 * Math.min(I, 38883)
+        + 0.3756 * Math.max(0, Math.min(I, 78426) - 38883)
+        + 0.495 * Math.max(0, I - 78426);
+      const ahk = Math.max(0, 3115 - 0.06398 * Math.max(0, I - 29736));
+      let ak;
+      if (I <= 11965) ak = 0.08324 * I;
+      else if (I <= 25845) ak = 0.08324 * 11965 + 0.31009 * (I - 11965);
+      else if (I <= 45592) ak = Math.min(5685, 0.08324 * 11965 + 0.31009 * (25845 - 11965) + 0.0195 * (I - 25845));
+      else ak = Math.max(0, 5685 - 0.0651 * (I - 45592));
+      return Math.max(0, bracket - ahk - ak);
+    },
     copy: {
       lang: 'nl',
       langLabel: 'Taal',
@@ -174,7 +192,7 @@
         taxLabel: 'Jouw inkomstenbelasting per jaar',
         directToggle: 'of vul de belasting direct in',
         grossName: 'Bruto jaarloon',
-        taxName: 'Inkomstenbelasting',
+        taxName: 'Loonheffing',
         directTag: '(direct ingevoerd)',
         incomeDefaultNote: 'Standaard: \u20ac 42.000 bruto per jaar (midden van de standaardband \u20ac 38.883 \u2013 \u20ac 45.592).',
         yourLabel: 'Jouw belasting',
@@ -254,7 +272,7 @@
         taxLabel: 'Your income tax per year',
         directToggle: 'or enter the tax directly',
         grossName: 'Gross salary',
-        taxName: 'Income tax',
+        taxName: 'Payroll tax',
         directTag: '(entered directly)',
         incomeDefaultNote: 'Default: \u20ac 42,000 gross per year (middle of the standard band \u20ac 38,883 \u2013 \u20ac 45,592).',
         yourLabel: 'Your tax',

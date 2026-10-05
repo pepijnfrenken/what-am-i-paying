@@ -99,6 +99,21 @@
       }
       return out;
     },
+    // Direkte Bundessteuer 2026, Tarif 58c (ledig) — nur Bund, ohne AHV/ALV
+    // und ohne Kantone (ch-rates-2026.md): 0% bis 15.200; 0,77/0,88/2,64/
+    // 2,97/5,94/6,60/8,80/11,00/13,20% in den Folgeschritten bis 793.900;
+    // darüber 11,5% (Quirk: niedriger als die letzte Stufe).
+    incomeTax(gross) {
+      const I = Math.max(0, num(gross));
+      const caps = [15200, 33200, 43500, 58000, 76200, 82100, 108900, 141500, 185100, 793900];
+      const m = [0, 0.0077, 0.0088, 0.0264, 0.0297, 0.0594, 0.066, 0.088, 0.11, 0.132];
+      let tax = 0;
+      for (let i = 0; i < caps.length; i++) {
+        tax += Math.max(0, Math.min(I, caps[i]) - (i ? caps[i - 1] : 0)) * m[i];
+      }
+      if (I > caps[9]) tax += 0.115 * (I - caps[9]);
+      return tax;
+    },
     copy: {
       lang: 'de-CH',
       langLabel: 'Sprache',
@@ -131,7 +146,7 @@
         taxLabel: 'Deine Einkommenssteuer pro Jahr',
         directToggle: 'oder Steuer direkt eingeben',
         grossName: 'Bruttojahreslohn',
-        taxName: 'Einkommenssteuer',
+        taxName: 'Direkte Bundessteuer',
         directTag: '(direkt eingegeben)',
         incomeDefaultNote: 'Standard: ca. CHF 100.000 steuerbar \u2014 entspricht der Standardbande Z\u00fcrich.',
         yourLabel: 'Deine Steuer',
@@ -211,7 +226,7 @@
         taxLabel: 'Your income tax per year',
         directToggle: 'or enter the tax directly',
         grossName: 'Gross salary',
-        taxName: 'Income tax',
+        taxName: 'Federal direct tax',
         directTag: '(entered directly)',
         incomeDefaultNote: 'Default: ~CHF 100,000 taxable \u2014 matches the Z\u00fcrich standard band.',
         yourLabel: 'Your tax',

@@ -59,11 +59,11 @@
   };
 
   // ---------------------------------------------------------------- comparisons
-  // Income tax derived from the site's existing wage-wedge model (gross =
-  // price / (1 - marginal) -> itax = gross x marginal): reuse, not a fork.
-  WAIP.incomeTax = function (cfg, gross, marginal) {
-    const m = Math.max(0, Math.min(1, WAIP.num(marginal)));
-    return Math.max(0, WAIP.num(gross)) * m;
+  // Annual income tax per country. Each module ships its own sourced tax
+  // function (loonheffing / UK income tax excl. NI / ДОД / direkte
+  // Bundessteuer); no marginal-rate placeholder.
+  WAIP.incomeTax = function (cfg, gross) {
+    return cfg.incomeTax ? cfg.incomeTax(gross) : 0;
   };
   // Pure split for the "where does my money go" view. Rule (where-goes-2026.md):
   // baseline = social x 1e6 / population; amount below baseline -> gap; at/above
@@ -402,9 +402,10 @@
         route = `${W.taxName} ${f(amount)} ${W.directTag}`;
       } else {
         const gross = WAIP.num($('wg-income').value);
-        const m = currentMarginal();
-        amount = WAIP.incomeTax(cfg, gross, m);
-        route = `${W.grossName} ${f(gross)} \u2192 ${W.taxName} ${f(amount)} (${WAIP.pctRate(m)}%)`;
+        amount = WAIP.incomeTax(cfg, gross);
+        let eff = gross > 0 ? (amount / gross * 100).toFixed(1).replace(/\.0$/, '') : '\u2013';
+        if (cfg.currency.decimalComma) eff = eff.replace('.', ',');
+        route = `${W.grossName} ${f(gross)} \u2192 ${W.taxName} ${f(amount)} (${eff}%)`;
       }
       $('wg-route').textContent = route;
       const s = WAIP.budgetSplit(cfg, amount);
@@ -446,8 +447,7 @@
     $('wg-tax').addEventListener('input', renderWhere);
     $('wg-mode').addEventListener('change', () => {
       if ($('wg-mode').checked) {
-        const m = currentMarginal();
-        $('wg-tax').value = String(Math.round(WAIP.incomeTax(cfg, $('wg-income').value, m)));
+        $('wg-tax').value = String(Math.round(WAIP.incomeTax(cfg, $('wg-income').value)));
       }
       renderWhere();
     });

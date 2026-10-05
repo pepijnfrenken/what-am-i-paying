@@ -98,6 +98,15 @@
       }
       return out;
     },
+    // ДОД 2026 = 10% × (bruto − werknemersbijdragen). Bijdragen 13,78% van
+    // het bruto, afgetopt op het verzekeringsplafond: € 2.111,64/maand
+    // (jan–jul 2026) en € 2.300,00/maand (aug–dec 2026) — pro-rata
+    // jaarcaplimit 26.281,48 (zie bg-rates-2026.md).
+    incomeTax(gross) {
+      const I = Math.max(0, num(gross));
+      const cap = 7 * 2111.64 + 5 * 2300;
+      return 0.1 * (I - 0.1378 * Math.min(I, cap));
+    },
     copy: {
       lang: 'bg',
       langLabel: 'Език',
@@ -129,7 +138,7 @@
         taxLabel: 'Твоят данък върху дохода годишно',
         directToggle: 'или въведи данъка директно',
         grossName: 'Брутна заплата',
-        taxName: 'Данък върху дохода',
+        taxName: 'ДОД',
         directTag: '(въведен директно)',
         incomeDefaultNote: 'Стандарт: \u20ac 2.300/мес \u2192 \u20ac 27.600 годишно (таван на осигуровките).',
         yourLabel: 'Твоят данък',
@@ -208,7 +217,7 @@
         taxLabel: 'Your income tax per year',
         directToggle: 'or enter the tax directly',
         grossName: 'Gross salary',
-        taxName: 'Income tax',
+        taxName: 'Personal income tax (ДОД)',
         directTag: '(entered directly)',
         incomeDefaultNote: 'Default: \u20ac 2,300/month \u2192 \u20ac 27,600/yr (insurance ceiling).',
         yourLabel: 'Your tax',

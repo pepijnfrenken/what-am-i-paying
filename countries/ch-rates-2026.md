@@ -19,6 +19,27 @@ Researched 2026-10-05 (ESTV/AFC, BAZG, BAFU, BSV, cantonal tax offices). Mid/lat
 
 ## Wage side (employee, single person)
 
+### Federal direct tax — single 2026 (Tarif 58c), annual bracket table
+
+Bracket tariff (marginal rate on each step of taxable income; tax = Σ rate ×
+filled step + rate × remainder). Source: ESTV «Tarife 58c / Barèmes 58c 2026»
+(estv.admin.ch/steuertarife-zur-direkten-bundessteuer, rev. 2026); tax-free
+first CHF 15,200; the top marginal drops to 11.5 % above 793,900 (tariff quirk).
+
+| Bracket (CHF taxable) | Marginal rate |
+|---|---|
+| ≤ 15,200 | 0 % |
+| 15,201 – 33,200 | 0.77 % |
+| 33,201 – 43,500 | 0.88 % |
+| 43,501 – 58,000 | 2.64 % |
+| 58,001 – 76,200 | 2.97 % |
+| 76,201 – 82,100 | 5.94 % |
+| 82,101 – 108,900 | 6.60 % |
+| 108,901 – 141,500 | 8.80 % |
+| 141,501 – 185,100 | 11.00 % |
+| 185,101 – 793,900 | 13.20 % |
+| above 793,900 | 11.50 % |
+
 | Component | Rate / value | Note |
 |---|---|---|
 | Federal direct tax — single, 2026 marginal | 0% to 15,200 · 0.77% to 33,200 · 0.88% to 43,500 · 2.64% to 58,000 · 2.97% to 76,200 · 5.94% to 82,100 · 6.60% to 108,900 · 8.80% to 141,500 · 11.00% to 185,100 · 13.20% to 793,900 · **11.5% flat above 793,900** (quirk: drops at the very top) | ESTV Tarif 58c 2026 |

@@ -106,6 +106,18 @@
       }
       return out;
     },
+    // Income tax 2026/27 only — NI excluded by design (uk-tax-2026.md).
+    // Personal Allowance £12,570, tapered £1 per £2 above £100,000 (zero at
+    // £125,140); 20% on the first £37,700 of taxable income, 40% to
+    // £125,140, 45% above. Rates verified on gov.uk (2026-10-01).
+    incomeTax(gross) {
+      const I = Math.max(0, num(gross));
+      const pa = Math.max(0, 12570 - Math.max(0, I - 100000) / 2);
+      const taxable = Math.max(0, I - pa);
+      return 0.2 * Math.min(taxable, 37700)
+        + 0.4 * Math.max(0, Math.min(taxable, 125140) - 37700)
+        + 0.45 * Math.max(0, taxable - 125140);
+    },
     copy: {
       lang: 'en-GB',
       docTitle: 'What am I actually paying?',
@@ -136,7 +148,7 @@
         taxLabel: 'Your income tax per year',
         directToggle: 'or enter the tax directly',
         grossName: 'Gross salary',
-        taxName: 'Income tax',
+        taxName: 'Income tax (NI not included)',
         directTag: '(entered directly)',
         incomeDefaultNote: 'Default: ~\u00a3 37,500 (median full-time salary, ASHE 2024/25, rounded).',
         yourLabel: 'Your tax',

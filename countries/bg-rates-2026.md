@@ -46,6 +46,13 @@ Sources: ЗАДС (consolidated ДВ бр. 69/31.07.2026) https://customs.bg →
 | **Effective marginal — up to the ceiling** | **≈ 22.40%** | = 13.78% + 10% × (1 − 13.78%) |
 | **Effective marginal — above the ceiling** | **10.00%** | Contributions capped |
 
+**Calculator rule — annual ДОД (single employee):** tax = 10% × (gross − contributions),
+contributions = 13.78% × gross capped at the insurance ceiling. The mid-year change
+(Jan–Jul 2026: € 2,111.64/month; Aug–Dec 2026: € 2,300.00/month) is handled
+pro-rata by month count: annual cap = 7 × 2,111.64 + 5 × 2,300.00 = **€ 26,281.48**.
+Applicable for the whole tax year 2026; a full-year view at a single figure would
+overstate (5 × (2,300 − 2,111.64) = € 941.80 of insurable income).
+
 Sources: minfin.bg/bg/827 (ЗДДФЛ чл. 48); https://nra.bg (осигурителен доход); bulsmetka.bg (НАП/КСО split).
 
 ## Uncertainties / flags
