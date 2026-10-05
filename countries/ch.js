@@ -45,6 +45,9 @@
       strom:     { name: 'Strom 1 kWh', nameEn: 'Electricity 1 kWh', price: 0.277, vat: 0.081, kind: 'energy', panel: { kwh: 1, m3: 0 }, noDutyLabel: 'Keine Bundessteuer auf Strom', noDutyLabelEn: 'No federal duty on electricity' },
       brot:      { name: 'Brot 500 g', nameEn: 'Bread 500 g', price: 1.00, vat: 0.026, kind: 'none' },
       bigmac:    { name: 'Big Mac (im Restaurant)', nameEn: 'Big Mac (in the restaurant)', price: 7.20, vat: 0.081, kind: 'none' },
+      groceries: { name: 'Wocheneink\u00e4ufe (Durchschnittshaushalt)', nameEn: 'Weekly groceries (average household)', price: 147.00, vat: 0.026, kind: 'none',
+        hint: 'CHF 147 pro Woche (CHF 638 pro Monat, BFS HABE 2023, Haushalt von 2,07 Personen). Lebensmittel und alkoholfreie Getr\u00e4nke zum reduzierten Satz von 2,6 %.',
+        hintEn: 'CHF 147 per week (CHF 638/month, BFS HABE 2023, 2.07-person household). Food and non-alcoholic drinks at the reduced 2.6 % rate.' },
       hotel:     { name: 'Hotel\u00fcbernachtung', nameEn: 'Hotel night', price: 120.00, vat: 0.038, kind: 'none' },
       custom:    { name: 'Anderes', nameEn: 'Other', price: 10.00, vat: 0.081, kind: 'custom', panel: { cfix: 0, cpct: 0 } }
     },

@@ -58,6 +58,8 @@
       vape:    { name: 'Vape liquid (10ml)', price: 5.00, vat: 0.20, kind: 'vape', panel: { vml: 10 } },
       bread:   { name: 'Loaf of bread (zero-rated)', price: 1.40, vat: 0, kind: 'none' },
       bigmac:  { name: 'Big Mac (eat-in)', price: 5.49, vat: 0.20, kind: 'none' },
+      groceries: { name: 'Weekly groceries (average household)', price: 73.70, vat: 0.00, kind: 'none',
+        hint: '\u00a3 73.70/week for a 2.36-person household (ONS FYE 2025: \u00a3 67.30 food + \u00a3 6.40 drinks). Most food is zero-rated; soft drinks and sweets are 20 % and carry the Soft Drinks Industry Levy (not included at 0 %).' },
       custom:  { name: 'Something else', price: 10.00, vat: 0.20, kind: 'custom', panel: { cfix: 0, cpct: 0 } }
     },
     taxBands: [

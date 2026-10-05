@@ -249,6 +249,7 @@
         if (id === 'draught') el.checked = !!val;
         else el.value = val;
       }
+      $('item-hint').textContent = (lang === 'en' && p.hintEn) || p.hint || '';
       calc();
     }
     function applyStaticCopy() {

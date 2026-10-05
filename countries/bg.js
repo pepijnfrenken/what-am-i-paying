@@ -49,6 +49,9 @@
       tok:       { name: 'Ток (1 kWh)', nameEn: 'Electricity (1 kWh)', price: 0.154, vat: 0.2, kind: 'energy', panel: { kwh: 1, m3: 0 }, noDutyLabel: 'Домакинствата са освободени от акциз върху електроенергията', noDutyLabelEn: 'Households are exempt from excise duty on electricity' },
       hlyab:     { name: 'Хляб (500 g)', nameEn: 'Bread (500 g)', price: 1.00, vat: 0.2, kind: 'none' },
       bigmac:    { name: 'Биг Мак (в ресторанта)', nameEn: 'Big Mac (in the restaurant)', price: 6.10, vat: 0.2, kind: 'none' },
+      groceries: { name: 'Седмични покупки (средно домакинство)', nameEn: 'Weekly groceries (average household)', price: 69.00, vat: 0.2, kind: 'none',
+        hint: '~136 лв (\u20ac 69) на седмица за домакинство от ~1,9 души (НСИ 2025: 3713 лв/човек храна и безалкохолни). Храната и безалкохолните напитки са с 20 % ДДС; България няма данък върху захарта.',
+        hintEn: '~136 лв (\u20ac 69) per week for a ~1.9-person household (NSI 2025: 3,713 лв per person on food & non-alcoholic drinks). Food and soft drinks carry 20 % VAT; Bulgaria has no sugar tax.' },
       custom:    { name: 'Друго', nameEn: 'Something else', price: 10.00, vat: 0.2, kind: 'custom', panel: { cfix: 0, cpct: 0 } }
     },
     taxBands: [
