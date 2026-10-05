@@ -74,9 +74,12 @@ function findChrome() {
 }
 
 let children = [];
+let profDir = null;
 function killAll() {
   for (const c of children) { try { c.kill('SIGKILL'); } catch { /* gone */ } }
   children = [];
+  // Best-effort profile cleanup: never fail the run on rm errors.
+  if (profDir) { try { fs.rmSync(profDir, { recursive: true, force: true }); } catch { /* ignore */ } profDir = null; }
 }
 process.on('exit', killAll);
 
@@ -109,11 +112,11 @@ async function main() {
   children.push(server);
   await sleep(800);
 
-  const prof = fs.mkdtempSync(path.join(os.tmpdir(), 'waip-chrome-'));
+  profDir = fs.mkdtempSync(path.join(os.tmpdir(), 'waip-chrome-'));
   const chrome = spawn(chromePath, [
     '--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu',
     '--no-first-run', '--no-default-browser-check',
-    `--remote-debugging-port=${DBPORT}`, `--user-data-dir=${prof}`, 'about:blank'
+    `--remote-debugging-port=${DBPORT}`, `--user-data-dir=${profDir}`, 'about:blank'
   ], { stdio: 'ignore' });
   children.push(chrome);
 
