@@ -405,10 +405,10 @@
     let wgActive = false;
     function switchTab(which) {
       wgActive = which === 'where';
-      tabReceipt.classList.toggle('active', !wgActive);
-      tabWhere.classList.toggle('active', wgActive);
-      tabReceipt.setAttribute('aria-selected', String(!wgActive));
-      tabWhere.setAttribute('aria-selected', String(wgActive));
+      $('tab-receipt').classList.toggle('active', !wgActive);
+      $('tab-where').classList.toggle('active', wgActive);
+      $('tab-receipt').setAttribute('aria-selected', String(!wgActive));
+      $('tab-where').setAttribute('aria-selected', String(wgActive));
       $('view-receipt').hidden = wgActive;
       $('view-where').hidden = !wgActive;
       if (wgActive) renderWhere();
