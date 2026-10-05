@@ -3,7 +3,8 @@
 A country-agnostic engine for the "what do I actually pay" concept: a product's
 ticket price is decomposed into seller revenue, duties/excises, VAT, and the
 income tax + social contributions on the wage you earned to buy it. Currently
-ships with **Nederland** (`nl`) and **United Kingdom** (`uk`).
+ships with **Nederland** (`nl`), **United Kingdom** (`uk`) and
+**Schweiz** (`ch`).
 
 ## Layout
 
@@ -12,7 +13,10 @@ index.html            UI shell (static markup; all texts filled by the active co
 core.js               engine + UI: wage wedge, VAT extraction, panels, receipt, formatting
 countries/nl.js       Netherlands: rates, presets, Dutch copy + NL duty mechanics
 countries/uk.js       United Kingdom: mirrors the original UK page (regression-tested)
+countries/ch.js       Switzerland: German copy, °Plato beer bands, no duty on wine
 test/uk_check.mjs     verifies the UK port reproduces the original page's math exactly
+test/nl_check.mjs     verifies the NL module against the sourced 2026 rates
+test/ch_check.mjs     verifies the CH module against the sourced 2026 rates
 ```
 
 No dependencies, no build step. Open `index.html` directly (`file://` works),
@@ -56,6 +60,7 @@ extend the mechanics freely (duty math lives in the country file — see NL's
 ```bash
 node test/uk_check.mjs    # UK math vs the original page's verbatim formulas
 node test/nl_check.mjs    # NL 2026 sourced rates: hand-computed duty anchors (1e-9)
+node test/ch_check.mjs    # CH 2026 sourced rates: °Plato beer, spirits, fuel anchors (1e-9)
 node test/dom_check.mjs   # real-browser DOM check (headless chromium, node >= 21)
 ```
 

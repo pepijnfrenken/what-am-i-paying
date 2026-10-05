@@ -36,10 +36,11 @@ const read = p => fs.readFileSync(path.join(ROOT, p), 'utf8');
 eval(read('core.js'));
 eval(read('countries/uk.js'));
 eval(read('countries/nl.js'));
+eval(read('countries/ch.js'));
 const WAIP = globalThis.WAIP;
 
 function num(v) { const n = parseFloat(v); return isFinite(n) ? n : 0; }
-const money = s => parseFloat(String(s).replace(/[−£€\s]/g, '').replace(',', '.'));
+const money = s => parseFloat(String(s).replace(/[−\s]/g, '').replace(/[^0-9.,-]/g, '').replace(',', '.'));
 const fmt = (cfg, v) => WAIP.formatMoney(cfg, v);
 
 // Expected receipt figures from the engine for the SAME inputs the UI holds.
@@ -189,7 +190,7 @@ async function main() {
     const g = id => document.getElementById(id);
     const txt = id => { const el = g(id); return el ? el.textContent : null; };
     const pan = {};
-    for (const id of ['ml','abv','cat','dml','dband','sticks','litres','fueltype','kwh','m3','cfix','cpct','vml']) {
+    for (const id of ['ml', 'abv', 'plato', 'cat', 'dml', 'dband', 'sticks', 'litres', 'fueltype', 'kwh', 'm3', 'cfix', 'cpct', 'vml']) {
       const el = g(id); if (el) pan[id] = el.value;
     }
     const dr = g('draught'); if (dr) pan.draughtOn = dr.checked;
@@ -201,6 +202,7 @@ async function main() {
       customWrapHidden: g('custom-rate-wrap').hidden,
       prefix: txt('price-prefix'), itemLabel: txt('item-label'),
       title: txt('title'), panelsText: g('panels').textContent,
+      countries: Array.from(g('country').options).map(o => o.value + ':' + o.textContent),
       bandOptions: Array.from(bt.options).map(o => o.value),
       itemOptions: Array.from(g('item').options).map(o => o.textContent),
       vatOptions: Array.from(g('vat').options).map(o => o.textContent),
@@ -340,6 +342,29 @@ async function main() {
   const nlErrs = snapshotErrors();
   check('NL: zero console errors / uncaught exceptions', nlErrs.length === 0, nlErrs.join(' | '));
 
+  // ================================================================ CH phase
+  await navigate(`${BASE}/?c=ch`);
+  snap = await snapshot();
+  check('CH: page renders (German title)', snap.title.includes('Was zahle ich wirklich?'), snap.title);
+  check('CH: country selector lists nl/uk/ch', snap.countries.length === 3 && snap.countries.join(',') === 'nl:Nederland,uk:United Kingdom,ch:Schweiz', snap.countries.join(','));
+  check('CH: default item Bier 5 dl; gross CHF 11.08 (dot decimals)',
+    snap.r.item === 'Bier 5 dl in der Bar, 12°P' && snap.r.gross === 'CHF 11.08' &&
+    /^CHF \d+\.\d{2}$/.test(snap.r.gross) && !snap.r.gross.includes(','),
+    `${snap.r.item} | ${snap.r.gross}`);
+  check('CH: Biersteuer duty line −CHF 0.13', snap.r.duty === '−CHF 0.13', snap.r.duty);
+  check('CH: VAT options (8.1 / 2.6 / 3.8 / 0)', snap.vatOptions.length === 4 && snap.vatOptions[0].includes('8.1 %'), snap.vatOptions.join(', ').slice(0, 80));
+  check('CH: default band Zürich 32.3 %', snap.band === '0.323', snap.band);
+  check('CH: plato field rendered next to ml', 'plato' in snap.panel && snap.panel.plato === '12' && 'ml' in snap.panel, `ml=${snap.panel.ml} plato=${snap.panel.plato}`);
+  await act(`(() => { const s = document.getElementById('item'); s.value = 'wein'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('CH: Wein preset shows noDutyLabel text', snap.r.dutySubs.includes('Keine Bundessteuer auf Wein'), snap.r.dutySubs.slice(0, 70));
+  check('CH: Wein receipt shows zero duty (formatMoney renders -0 without minus)', snap.r.duty === 'CHF 0.00', snap.r.duty);
+  await act(`(() => { const s = document.getElementById('item'); s.value = 'zigaretten'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  cross('CH: Zigaretten matches WAIP.compute', WAIP.countries.ch, snap, ['price', 'vat', 'duty', 'under', 'gross', 'tax']);
+  const chErrs = snapshotErrors();
+  check('CH: zero console errors / uncaught exceptions', chErrs.length === 0, chErrs.join(' | '));
+
   // ================================================================ network
   const resp = history.filter(ev => ev.method === 'Network.responseReceived').map(ev => ({ url: ev.params.response.url, status: ev.params.response.status }));
   // loadingFailed carries no URL; map requestId -> url from responseReceived
@@ -350,9 +375,9 @@ async function main() {
     canceled: !!ev.params.canceled
   }));
 
-  for (const file of ['index.html', 'core.js', 'countries/nl.js', 'countries/uk.js']) {
+  for (const file of ['index.html', 'core.js', 'countries/nl.js', 'countries/uk.js', 'countries/ch.js']) {
     const hits = resp.filter(r => file === 'index.html'
-      ? (r.url === `${BASE}/?c=uk` || r.url === `${BASE}/?c=nl` || r.url.endsWith('/index.html'))
+      ? (r.url === `${BASE}/?c=uk` || r.url === `${BASE}/?c=nl` || r.url === `${BASE}/?c=ch` || r.url.endsWith('/index.html'))
       : r.url.endsWith('/' + file));
     check(`NET: ${file} loaded 200`, hits.some(h => h.status === 200), hits.map(h => h.status).join(',') || 'not seen');
   }

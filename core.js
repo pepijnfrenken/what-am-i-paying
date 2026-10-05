@@ -66,7 +66,14 @@
       const L = cfg.copy.panels.alcohol;
       let h = `<div class="field"><label for="cat">${L.cat}</label><select id="cat">` +
         cfg.panels.alcohol.cats.map(o => `<option value="${o.v}">${o.t}</option>`).join('') + `</select></div>`;
-      h += `<div class="row field">${inpCell('ml', L.ml, 'min="0" step="1"')}${inpCell('abv', L.abv, 'min="0" max="100" step="0.1"')}</div>`;
+      if (cfg.panels.alcohol.plato) {
+        // optional °Plato input (CH beer duty is per °Plato band): plato sits
+        // next to ml; abv moves to its own row since spirits still tax pure alcohol
+        h += `<div class="row field">${inpCell('ml', L.ml, 'min="0" step="1"')}${inpCell('plato', L.plato || '\u00b0Plato', 'min="0" step="0.1"')}</div>`;
+        if (L.abv) h += inpFull('abv', L.abv, 'min="0" max="100" step="0.1"');
+      } else {
+        h += `<div class="row field">${inpCell('ml', L.ml, 'min="0" step="1"')}${inpCell('abv', L.abv, 'min="0" max="100" step="0.1"')}</div>`;
+      }
       if (cfg.panels.alcohol.draught && L.draught) {
         h += `<div class="field"><label class="check"><input id="draught" type="checkbox"> ${L.draught}</label></div>`;
       }
@@ -104,7 +111,7 @@
     }
   };
 
-  const INPUT_IDS = ['ml', 'abv', 'cat', 'dml', 'dband', 'sticks', 'litres', 'fueltype', 'kwh', 'm3', 'cfix', 'cpct', 'vml'];
+  const INPUT_IDS = ['ml', 'abv', 'plato', 'cat', 'dml', 'dband', 'sticks', 'litres', 'fueltype', 'kwh', 'm3', 'cfix', 'cpct', 'vml'];
 
   function collectState(cfg) {
     const preset = cfg.presets[$('item').value];
@@ -138,7 +145,7 @@
     $('r-duty').textContent = f(-res.duty);
     $('r-duty-subs').innerHTML = res.dutyLines.length
       ? res.dutyLines.map(d => `<div class="line sub"><span>${d.label}</span><span>${f(d.v)}</span></div>`).join('')
-      : `<div class="line sub"><span>${C.noDuty}</span><span></span></div>`;
+      : `<div class="line sub"><span>${(state.preset && state.preset.noDutyLabel) || C.noDuty}</span><span></span></div>`;
     $('r-under').textContent = f(res.under);
     $('r-under-sub').textContent = R.underSub;
     $('r-tax-l').textContent = C.taxLine(res.marginal);
