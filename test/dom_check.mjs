@@ -207,6 +207,10 @@ async function main() {
       langVisible: !g('lang').hidden,
       langValue: g('lang').value,
       langOptions: Array.from(g('lang').options).map(o => o.textContent),
+      showAllLabel: txt('show-all'),
+      compareVisible: !g('compare').hidden,
+      compareHeaders: Array.from(g('compare').querySelectorAll('th')).map(x => x.textContent),
+      compareRows: g('compare').querySelectorAll('tbody tr').length,
       bandOptions: Array.from(bt.options).map(o => o.value),
       itemOptions: Array.from(g('item').options).map(o => o.textContent),
       vatOptions: Array.from(g('vat').options).map(o => o.textContent),
@@ -302,6 +306,16 @@ async function main() {
     snap.r.item === 'Big Mac (eat-in)' && snap.r.price === '£5.49' && snap.r.vat === '−£0.92' && snap.r.duty === '£0.00',
     `${snap.r.price} | ${snap.r.vat} | ${snap.r.duty}`);
 
+  // comparison view: toggle reveals one row per preset
+  await act(`(() => { document.getElementById('show-all').click(); return true; })()`);
+  snap = await snapshot();
+  check('UK: Show all reveals a table with one row per preset',
+    snap.showAllLabel === 'Hide' && snap.compareVisible === true && snap.compareRows === snap.itemOptions.length,
+    `rows=${snap.compareRows} presets=${snap.itemOptions.length}`);
+  await act(`(() => { document.getElementById('show-all').click(); return true; })()`);
+  snap = await snapshot();
+  check('UK: toggling Show all off hides the table', snap.showAllLabel === 'Show all' && snap.compareVisible === false, snap.showAllLabel);
+
   // interaction (a): country select uk->nl swaps currency/labels/presets/bands
   await act(`(() => { const s = document.getElementById('country'); s.value = 'nl'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   snap = await snapshot();
@@ -370,6 +384,24 @@ async function main() {
   check('NL: Big Mac selectable, €6,10 @ 9% VAT, no duty',
     snap.r.item === 'Big Mac (in het restaurant)' && snap.r.price === '€6,10' && snap.r.vat === '−€0,50' && snap.r.duty === '€0,00' && snap.r.vatL === 'Min btw (9%)',
     `${snap.r.price} | ${snap.r.vat} | ${snap.r.duty} | ${snap.r.vatL}`);
+  // comparison view: native labels, row count, row click, collapse
+  check('NL: Show all button labelled Toon alles', snap.showAllLabel === 'Toon alles' && snap.compareVisible === false, snap.showAllLabel);
+  await act(`(() => { document.getElementById('show-all').click(); return true; })()`);
+  snap = await snapshot();
+  check('NL: Show all — native headers, one row per preset (Verberg state)',
+    snap.showAllLabel === 'Verberg' && snap.compareVisible === true &&
+    snap.compareHeaders.join('|') === 'Product|Prijs|Wat het kon kosten|Wat het écht kost|% naar de overheid' &&
+    snap.compareRows === snap.itemOptions.length,
+    `${snap.showAllLabel} | ${snap.compareHeaders.join('|')} | rows=${snap.compareRows}`);
+  await act(`(() => { document.querySelector('#compare tbody tr[data-key="krat"]').click(); return true; })()`);
+  snap = await snapshot();
+  check('NL: clicking a comparison row loads that preset into the main view',
+    snap.item === 'krat' && snap.r.item === 'Krat pils, supermarkt (24 × 30cl, 4,8%)',
+    `${snap.item} | ${snap.r.item}`);
+  await act(`(() => { document.getElementById('show-all').click(); return true; })()`);
+  snap = await snapshot();
+  check('NL: toggling off collapses the table and restores the label',
+    snap.showAllLabel === 'Toon alles' && snap.compareVisible === false, snap.showAllLabel);
   const nlErrs = snapshotErrors();
   check('NL: zero console errors / uncaught exceptions', nlErrs.length === 0, nlErrs.join(' | '));
 
@@ -399,6 +431,14 @@ async function main() {
   check('CH: Big Mac selectable, CHF 7.20 @ 8.1% MWST, no duty',
     snap.r.item === 'Big Mac (im Restaurant)' && snap.r.price === 'CHF 7.20' && snap.r.vat === '−CHF 0.54' && snap.r.duty === 'CHF 0.00',
     `${snap.r.price} | ${snap.r.vat} | ${snap.r.duty}`);
+  // comparison view: one row per preset, then collapse
+  await act(`(() => { document.getElementById('show-all').click(); return true; })()`);
+  snap = await snapshot();
+  check('CH: Show all reveals a table with one row per preset', snap.compareVisible === true && snap.compareRows === snap.itemOptions.length,
+    `rows=${snap.compareRows} presets=${snap.itemOptions.length}`);
+  await act(`(() => { document.getElementById('show-all').click(); return true; })()`);
+  snap = await snapshot();
+  check('CH: toggling off hides the table', snap.compareVisible === false);
   const chErrs = snapshotErrors();
   check('CH: zero console errors / uncaught exceptions', chErrs.length === 0, chErrs.join(' | '));
 
@@ -430,6 +470,14 @@ async function main() {
   check('BG: Big Mac selectable, €6,10 @ 20% ДДС, no duty',
     snap.r.item === 'Биг Мак (в ресторанта)' && snap.r.price === '€6,10' && snap.r.vat === '−€1,02' && snap.r.duty === '€0,00',
     `${snap.r.price} | ${snap.r.vat} | ${snap.r.duty}`);
+  // comparison view: one row per preset, then collapse
+  await act(`(() => { document.getElementById('show-all').click(); return true; })()`);
+  snap = await snapshot();
+  check('BG: Show all reveals a table with one row per preset', snap.compareVisible === true && snap.compareRows === snap.itemOptions.length,
+    `rows=${snap.compareRows} presets=${snap.itemOptions.length}`);
+  await act(`(() => { document.getElementById('show-all').click(); return true; })()`);
+  snap = await snapshot();
+  check('BG: toggling off hides the table', snap.compareVisible === false);
   const bgErrs = snapshotErrors();
   check('BG: zero console errors / uncaught exceptions', bgErrs.length === 0, bgErrs.join(' | '));
 
@@ -438,6 +486,16 @@ async function main() {
   snap = await snapshot();
   check('LANG: ?lang=en loads NL already in English', snap.langValue === 'en' && snap.itemLabel === 'Item' && snap.r.vatL === 'Minus VAT (21%)',
     `${snap.langValue} | ${snap.r.vatL}`);
+  // English comparison headers in the EN view
+  await act(`(() => { document.getElementById('show-all').click(); return true; })()`);
+  snap = await snapshot();
+  check('LANG: English compare headers on NL (Hide state)',
+    snap.showAllLabel === 'Hide' && snap.compareVisible === true &&
+    snap.compareHeaders.join('|') === 'Item|Price|What it could cost|What it really costs|% to the government',
+    `${snap.showAllLabel} | ${snap.compareHeaders.join('|')}`);
+  await act(`(() => { document.getElementById('show-all').click(); return true; })()`);
+  snap = await snapshot();
+  check('LANG: collapsing in English restores Show all', snap.showAllLabel === 'Show all' && snap.compareVisible === false, snap.showAllLabel);
   await act(`(() => { const s = document.getElementById('country'); s.value = 'ch'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   snap = await snapshot();
   check('LANG: country switch preserves English choice (NL→CH)', snap.langValue === 'en' && snap.r.vatL === 'Minus VAT (8.1%)' && snap.langOptions.join(',') === 'Deutsch,English',
