@@ -112,7 +112,7 @@
       noDuty: 'None on this item',
       ratesPending: '',
       vatLine: vr => `Less VAT (${(vr * 100).toFixed(0)}%)`,
-      taxLine: m => `Plus income tax and NI (${(m * 100).toFixed(m * 100 % 1 ? 1 : 0)}%)`,
+      taxLine: m => `Plus income tax and NI (${WAIP.pctRate(m)}%)`,
       mult: r => `You really pay <b>${r.toFixed(2)}\u00d7</b> what it could cost`,
       take: res => `Of the <b>${WAIP.formatMoney({ currency: { symbol: '\u00a3' } }, res.gross)}</b> you earn to buy this, <b>${WAIP.formatMoney({ currency: { symbol: '\u00a3' } }, res.govt)}</b> (${(res.govt / res.gross * 100).toFixed(0)}%) goes in tax: <b>${WAIP.formatMoney({ currency: { symbol: '\u00a3' } }, res.itax)}</b> income tax and NI, <b>${WAIP.formatMoney({ currency: { symbol: '\u00a3' } }, res.vat)}</b> VAT and <b>${WAIP.formatMoney({ currency: { symbol: '\u00a3' } }, res.duty)}</b> duty.`,
       warnNeg: 'Duty and VAT come to more than this price. The price may be too low for this item, or the shop is selling at a loss.',

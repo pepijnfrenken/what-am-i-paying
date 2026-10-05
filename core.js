@@ -19,6 +19,11 @@
   WAIP.num = v => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
   const pct = v => (v * 100).toFixed(0) + '%';
 
+  // marginal rate -> "28" or "37.5"; nukes float noise (0.28*100 is
+  // 28.000000000000004, which used to print "28.0"). Country copies apply
+  // their own decimal comma if needed.
+  WAIP.pctRate = m => (m * 100).toFixed(1).replace(/\.0$/, '');
+
   WAIP.formatMoney = function (cfg, v) {
     const cur = cfg.currency || { symbol: '', decimals: 2 };
     const d = cur.decimals != null ? cur.decimals : 2;

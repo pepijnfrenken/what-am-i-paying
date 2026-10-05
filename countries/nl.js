@@ -133,7 +133,7 @@
       noDuty: 'Geen op dit product',
       ratesPending: 'Tarieven worden op dit moment geverifieerd en ingevuld.',
       vatLine: vr => `Min btw (${(vr * 100).toFixed(0)}%)`,
-      taxLine: m => `Plus inkomstenbelasting (${(m * 100).toFixed(m * 100 % 1 ? 1 : 0)}%)`,
+      taxLine: m => `Plus inkomstenbelasting (${WAIP.pctRate(m).replace('.', ',')}%)`,
       mult: r => `Je betaalt echt <b>${r.toFixed(2).replace('.', ',')}\u00d7</b> wat het zou kunnen kosten`,
       take: res => `Van de <b>${WAIP.formatMoney({ currency: { symbol: '\u20ac', decimalComma: true } }, res.gross)}</b> die je verdient om dit te kopen gaat <b>${WAIP.formatMoney({ currency: { symbol: '\u20ac', decimalComma: true } }, res.govt)}</b> (${(res.govt / res.gross * 100).toFixed(0)}%) naar de overheid: <b>${WAIP.formatMoney({ currency: { symbol: '\u20ac', decimalComma: true } }, res.itax)}</b> inkomstenbelasting, <b>${WAIP.formatMoney({ currency: { symbol: '\u20ac', decimalComma: true } }, res.vat)}</b> btw en <b>${WAIP.formatMoney({ currency: { symbol: '\u20ac', decimalComma: true } }, res.duty)}</b> accijns/heffingen.`,
       warnNeg: 'Accijns en btw komen samen hoger uit dan de prijs. Misschien is de prijs te laag voor dit product, of de winkel verkoopt met verlies.',
