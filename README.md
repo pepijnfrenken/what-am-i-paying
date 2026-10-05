@@ -55,6 +55,7 @@ extend the mechanics freely (duty math lives in the country file — see NL's
 
 ```bash
 node test/uk_check.mjs    # UK math vs the original page's verbatim formulas
+node test/nl_check.mjs    # NL 2026 sourced rates: hand-computed duty anchors (1e-9)
 node test/dom_check.mjs   # real-browser DOM check (headless chromium, node >= 21)
 ```
 
