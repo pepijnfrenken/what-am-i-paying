@@ -57,6 +57,10 @@ directly. The tax is compared against what you cost in social security
 categories — data and split rule in `countries/where-goes-2026.md`, disclaimer
 that taxes are not earmarked.
 
+Control labels and key figures carry small **info triggers** (ⓘ): one shared
+popover implementation, opened by click/tap or keyboard focus, closed by
+Escape, click-away or a second click; texts follow the language (copy/copyEn).
+
 ## Adding a country (4 steps)
 
 1. **Copy the template:** `cp countries/nl.js countries/<cc>.js`.
