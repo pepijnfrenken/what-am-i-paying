@@ -73,20 +73,38 @@ check('Dezimalpunkt (kein decimalComma)', ch.currency.decimalComma !== true && c
   check('Big Mac 7.20 @8.1%: MWST = 7.20 x 8.1/108.1 = 0.539500..., duty 0', close(got.vat, 7.20 * 8.1 / 108.1) && got.duty === 0, `vat=${got.vat} duty=${got.duty}`);
 }
 
-// --- budget split (Bundesvoranschlag 2026, where-goes-2026.md) --------------
+// --- Budget split (konsolidierte Staatsrechnung 2024, where-goes-2026.md) ----
 {
-  const baseline = ch.budget.social * 1e6 / ch.budget.population;
-  const extrasTotal = Object.values(ch.budget.cats).reduce((a, c) => a + c.v, 0);
-  check('wg: baseline = 31823e6/9127100 = 3 487,0...', close(baseline, 31823e6 / 9127100), `baseline=${baseline}`);
+  const baseline = WAIP.budgetBaseline(ch);
+  check('wg: baseline = 104.845e6 / 9.006.600 = 11.641 ±1', Math.abs(baseline - 11641) <= 1, `baseline=${baseline.toFixed(2)}`);
   let s = WAIP.budgetSplit(ch, baseline);
   check('wg: amount = baseline -> 100% sozial (extra 0)', !s.below && close(s.extra, 0));
-  s = WAIP.budgetSplit(ch, baseline - 800);
-  check('wg: unter baseline -> gap 800', s.below && close(s.gap, 800));
-  const X = 500;
-  s = WAIP.budgetSplit(ch, baseline + X);
-  const tot = s.rows.reduce((a, r) => a + r.v, 0);
-  check('wg: extra = X, Summe = X, Sozial = baseline', !s.below && close(s.extra, X) && close(tot, X) && close(baseline + X - tot, baseline));
-  check('wg: Kategorie proportional (finanzen)', close(s.rows.find(r => r.key === 'finanzen').v, X * ch.budget.cats.finanzen.v / extrasTotal));
+  s = WAIP.budgetSplit(ch, baseline - 3000);
+  check('wg: unter baseline -> gap 3.000', s.below && close(s.gap, 3000));
+  const zh100 = WAIP.incomeTax(ch, 100000, { place: 'zh' }); // 15.888,15
+  s = WAIP.budgetSplit(ch, zh100);
+  const sum = s.rows.reduce((a, r) => a + r.v, 0);
+  check('wg: Zürich 100k — sozial = baseline, extra = 4.247 ±1, Summe = extra',
+    !s.below && close(s.baseline, baseline) && Math.abs(s.extra - 4247) <= 1 && close(sum, s.extra), `extra=${s.extra.toFixed(2)}`);
+  check('wg: Zürich 100k — 7 Kategorien, extras_total = 158.098',
+    s.rows.length === 7 && close(Object.values(ch.budget.cats).reduce((a, c) => a + c.v, 0), 158098));
+  check('wg: Kategorie proportional (bildung)', close(s.rows.find(r => r.key === 'bildung').v, s.extra * ch.budget.cats.bildung.v / 158098));
+}
+
+// --- Ort-wahl: Bundes- + Kantons- + Gemeindesteuer (ch-cantonal-2026.md) ------
+{
+  const total = (I, place) => WAIP.incomeTax(ch, I, { place });
+  const cases = [['zh', 80000, 10730], ['zh', 100000, 15888], ['be', 80000, 16766], ['be', 100000, 22958],
+    ['zg', 80000, 6488], ['zg', 100000, 10009], ['baar', 80000, 6312], ['baar', 100000, 9757]];
+  for (const [place, inc, expect] of cases) {
+    check(`Ort ${place} bei ${inc}: ${expect} ±1`, Math.abs(total(inc, place) - expect) <= 1, `engine=${total(inc, place).toFixed(2)}`);
+  }
+  // einfache Steuer spot checks (1e-6)
+  check('einfache Steuer ZH 76.400 -> 4.046', close(WAIP.chSimpleTax('zh', 76400), 4046));
+  check('einfache Steuer BE 6.600 -> 160,05', close(WAIP.chSimpleTax('be', 6600), 160.05));
+  check('einfache Steuer ZG 94.800 -> 5.114,50', close(WAIP.chSimpleTax('zg', 94800), 5114.50));
+  check('ZG rundet auf volle CHF 100 ab (142.688 -> 142.600)', close(WAIP.chSimpleTax('zg', 142688), 9669.50));
+  check('Ort default = Bund', ch.placeDefault === 'bund' && ch.places.length === 5);
 }
 
 // --- Wocheneinkäufe 2026 (reduced 2.6 %) ------------------------------------
