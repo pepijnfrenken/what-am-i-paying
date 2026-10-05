@@ -227,6 +227,10 @@ async function main() {
       wgModeLabel: txt('wg-mode-label'),
       wgDefaultNote: txt('wg-default-note'),
       wgRoute: txt('wg-route'),
+      wgPlaceVisible: !g('wg-place-wrap').hidden,
+      wgPlace: g('wg-place').value,
+      wgPlaces: Array.from(g('wg-place').options).map(o => o.textContent),
+      wgPlaceLabel: txt('wg-place-label'),
       wgBelowVisible: !g('wg-below').hidden,
       wgAboveVisible: !g('wg-above').hidden,
       wgRows: g('wg-rows').children.length,
@@ -565,6 +569,30 @@ async function main() {
   await act(`(() => { document.getElementById('show-all').click(); return true; })()`);
   snap = await snapshot();
   check('CH: toggling off hides the table', snap.compareVisible === false);
+  // place selector (CH): federal default → canton changes the route
+  await act(`(() => { document.getElementById('tab-where').click(); return true; })()`);
+  snap = await snapshot();
+  check('CH: place selector visible (Ort, 5 options, default Bund)',
+    snap.wgPlaceVisible === true && snap.wgPlaceLabel === 'Ort' && snap.wgPlaces.length === 5 &&
+    snap.wgPlaces[0] === 'Nur Bundessteuer' && snap.wgPlace === 'bund',
+    `${snap.wgPlace} | ${snap.wgPlaces.join(',')}`);
+  check('CH: federal-only default — below the consolidated baseline',
+    snap.wgBelowVisible === true && snap.wgRoute.includes('CHF 2684.35'), snap.wgRoute);
+  await act(`(() => { const s = document.getElementById('wg-place'); s.value = 'zh'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('CH: switch to Zürich — total 15.888,15, above baseline, 7 categories',
+    snap.wgPlace === 'zh' && snap.wgAboveVisible === true && snap.wgRows === 7 &&
+    snap.wgRoute.includes('Zürich (Stadt)') && snap.wgRoute.includes('15888.15') && snap.wgRoute.includes('(15.9%)'),
+    snap.wgRoute);
+  await act(`(() => { document.querySelector('button.info[data-info="route"]').click(); return true; })()`);
+  snap = await snapshot();
+  check('CH: route info mentions cantonal/communal + spread',
+    snap.infoPopVisible === true && snap.infoPopText.includes('Kantons'), snap.infoPopText.slice(0, 70));
+  await act(`(() => { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); return true; })()`);
+  await act(`(() => { const s = document.getElementById('wg-place'); s.value = 'baar'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('CH: Baar total 9.757,34', snap.wgPlace === 'baar' && snap.wgRoute.includes('9757.34'), snap.wgRoute);
+  await act(`(() => { document.getElementById('tab-receipt').click(); return true; })()`);
   const chErrs = snapshotErrors();
   check('CH: zero console errors / uncaught exceptions', chErrs.length === 0, chErrs.join(' | '));
 
@@ -681,6 +709,18 @@ async function main() {
   await navigate(`${BASE}/?c=ch&lang=native`);
   snap = await snapshot();
   check('LANG: explicit ?lang=native renders native (Minus MWST 8.1%)', snap.langValue === 'native' && snap.r.vatL === 'Minus MWST (8.1%)', `${snap.langValue} | ${snap.r.vatL}`);
+  // CH place selector in English
+  await navigate(`${BASE}/?c=ch&lang=en`);
+  await act(`(() => { document.getElementById('tab-where').click(); return true; })()`);
+  snap = await snapshot();
+  check('LANG: CH place selector in English (Place, Federal only)',
+    snap.wgPlaceLabel === 'Place' && snap.wgPlaces.includes('Federal only') && snap.wgPlaces.includes('Zürich (city)') && snap.wgPlace === 'bund',
+    `${snap.wgPlaceLabel} | ${snap.wgPlaces.join(',')}`);
+  await act(`(() => { const s = document.getElementById('wg-place'); s.value = 'zh'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('LANG: CH route in English (Income tax, Zürich 15,888.15)',
+    snap.wgRoute.includes('Income tax') && snap.wgRoute.includes('Zürich (city)') && snap.wgRoute.includes('15888.15'), snap.wgRoute);
+  await act(`(() => { document.getElementById('tab-receipt').click(); return true; })()`);
   const langErrs = snapshotErrors();
   check('LANG: zero console errors / uncaught exceptions', langErrs.length === 0, langErrs.join(' | '));
 

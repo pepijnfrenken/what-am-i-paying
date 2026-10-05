@@ -49,12 +49,14 @@ position, and the info buttons on the page say so.
 
 **Where does my money go?** Enter a gross yearly income. Each country computes
 its annual income tax from the sourced rules: Dutch wage tax with the general
-and employment credits, UK income tax without National Insurance, the Swiss
-federal direct tax only, and Bulgaria's flat 10 % after social contributions.
-The result is compared with what the state spends per person on social
-security. If you pay more than that, the rest is split over the published
-budget categories in proportion to their size. Taxes are not earmarked; the
-split shows proportions, not where your particular money went.
+and employment credits, UK income tax without National Insurance, Swiss
+federal income tax plus a cantonal/communal part via a place selector (Zürich,
+Bern, Zug, Baar — default federal only), and Bulgaria's flat 10 % after social
+contributions. The result is compared with what the state spends per person on
+social security. If you pay more than that, the rest is split over the
+published budget categories in proportion to their size (CH uses the
+consolidated 2024 public accounts). Taxes are not earmarked; the split shows
+proportions, not where your particular money went.
 
 ## Run it
 
@@ -109,8 +111,9 @@ This is an illustration, not tax advice. Things to keep in mind:
 - "What it could cost" still contains taxes the seller pays: employer
   contributions, business rates, corporation tax, import duties. The real
   government share is higher than shown.
-- The Swiss income-tax route is the federal tax only. Cantonal and communal
-  income tax, usually the larger part, is not included yet.
+- The Swiss income-tax route covers federal + cantonal + communal tax for
+  the five selectable places on single taxpayers without children; other
+  cantons/communes, married tariffs and wealth tax are not modelled.
 - The UK income-tax route leaves out National Insurance, and is labelled that
   way on the page.
 - The UK duty rates were taken from the original UK page and have not been
