@@ -6,6 +6,14 @@ income tax + social contributions on the wage you earned to buy it. Currently
 ships with **Nederland** (`nl`), **United Kingdom** (`uk`),
 **Schweiz** (`ch`) and **България** (`bg`).
 
+## Credit
+
+The original concept, and the original UK version, is
+**"What am I actually paying?"** (<https://wonderful-faloodeh-c2a85d.netlify.app/>).
+This project started as a rebuild of that idea for the Dutch system and grew
+into a modular tool for several countries. Full credit for the original idea
+to its author.
+
 ## Layout
 
 ```
