@@ -446,21 +446,22 @@ async function main() {
   await act(`(() => { const s = document.getElementById('band-tax'); s.value = '0.42'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   await act(`(() => { document.getElementById('tab-where').click(); return true; })()`);
   snap = await snapshot();
-  check('NL: where tab — default gross €42,000, route shows tax €17,640 (42%)',
+  check('NL: where tab — default gross €42,000, route shows Loonheffing €7.126,03 (17%)',
     snap.wgVisible === true && snap.recVisible === false && snap.wgIncome === '42000' &&
     snap.wgLabel === 'Bruto jaarloon per jaar (\u2248 belastbaar inkomen)' &&
-    snap.wgDefaultNote.includes('42.000') && snap.wgRoute.includes('€17640,00') && snap.wgRoute.includes('(42%)'),
+    snap.wgDefaultNote.includes('42.000') && snap.wgRoute.includes('Loonheffing') &&
+    snap.wgRoute.includes('€7126,03') && snap.wgRoute.includes('(17%)'),
     `income=${snap.wgIncome} | ${snap.wgRoute}`);
   await act(`(() => { const el = document.getElementById('wg-income'); el.value = '15000'; el.dispatchEvent(new Event('input', { bubbles: true })); return true; })()`);
   snap = await snapshot();
-  check('NL: below baseline via income (tax 6,300 < baseline) — gap note + amount',
-    snap.wgBelowVisible === true && snap.wgAboveVisible === false && snap.wgBelowText.includes('Je betaalt minder dan je kost') && snap.wgBelowText.includes('€578,02'),
+  check('NL: below baseline via income (loonheffing 310,41 < baseline) — gap note + amount',
+    snap.wgBelowVisible === true && snap.wgAboveVisible === false && snap.wgBelowText.includes('Je betaalt minder dan je kost') && snap.wgBelowText.includes('€6567,61'),
     snap.wgBelowText);
-  // direct toggle prefilled with the computed tax (6,300)
+  // direct toggle prefilled with the computed tax (310)
   await act(`(() => { document.getElementById('wg-mode').click(); return true; })()`);
   snap = await snapshot();
-  check('NL: direct toggle prefills the tax input (6,300)',
-    snap.wgModeChecked === true && snap.wgTaxVisible === true && snap.wgIncomeHidden === true && snap.wgTax === '6300',
+  check('NL: direct toggle prefills the tax input (310)',
+    snap.wgModeChecked === true && snap.wgTaxVisible === true && snap.wgIncomeHidden === true && snap.wgTax === '310',
     `tax=${snap.wgTax}`);
   await act(`(() => { const el = document.getElementById('wg-tax'); el.value = String(WAIP.budgetBaseline(WAIP.countries.nl)); el.dispatchEvent(new Event('input', { bubbles: true })); return true; })()`);
   snap = await snapshot();
@@ -469,17 +470,17 @@ async function main() {
   await act(`(() => { const el = document.getElementById('wg-tax'); el.value = '5000'; el.dispatchEvent(new Event('input', { bubbles: true })); return true; })()`);
   snap = await snapshot();
   check('NL: direct mode below baseline — gap €1.878,02', snap.wgBelowVisible === true && snap.wgAboveVisible === false && snap.wgBelowText.includes('€1878,02'), snap.wgBelowText);
-  // back to income mode, clearly above baseline
+  // back to income mode, clearly above baseline (loonheffing 8.386 > 6.878)
   await act(`(() => { document.getElementById('wg-mode').click(); return true; })()`);
-  await act(`(() => { const el = document.getElementById('wg-income'); el.value = '30000'; el.dispatchEvent(new Event('input', { bubbles: true })); return true; })()`);
+  await act(`(() => { const el = document.getElementById('wg-income'); el.value = '45000'; el.dispatchEvent(new Event('input', { bubbles: true })); return true; })()`);
   snap = await snapshot();
-  check('NL: above baseline via income (tax 12,600) — 9 categories',
-    snap.wgAboveVisible === true && snap.wgBelowVisible === false && snap.wgRows === 9 && snap.wgRoute.includes('€12600,00'),
+  check('NL: above baseline via income (loonheffing 8.386,27) — 9 categories',
+    snap.wgAboveVisible === true && snap.wgBelowVisible === false && snap.wgRows === 9 && snap.wgRoute.includes('(18,6%)'),
     `rows=${snap.wgRows} | ${snap.wgRoute}`);
   await act(`(() => { document.getElementById('tab-receipt').click(); return true; })()`);
   snap = await snapshot();
-  check('NL: back on receipt tab — state kept (item krat, income 30000)',
-    snap.recVisible === true && snap.wgVisible === false && snap.item === 'krat' && snap.wgIncome === '30000', `${snap.item} | ${snap.wgIncome}`);
+  check('NL: back on receipt tab — state kept (item krat, income 45000)',
+    snap.recVisible === true && snap.wgVisible === false && snap.item === 'krat' && snap.wgIncome === '45000', `${snap.item} | ${snap.wgIncome}`);
   const nlErrs = snapshotErrors();
   check('NL: zero console errors / uncaught exceptions', nlErrs.length === 0, nlErrs.join(' | '));
 
@@ -598,7 +599,7 @@ async function main() {
   check('LANG: English where view (income label + tabs + route + toggle)',
     snap.wgLabel === 'Gross yearly income (\u2248 taxable income)' && snap.tabReceiptLabel === 'Receipt' &&
     snap.tabWhereLabel === 'Where does my money go?' && snap.wgIncome === '42000' &&
-    snap.wgRoute.includes('Income tax') && snap.wgModeLabel === 'or enter the tax directly',
+    snap.wgRoute.includes('Payroll tax') && snap.wgModeLabel === 'or enter the tax directly',
     `${snap.wgLabel} | ${snap.wgIncome} | ${snap.wgModeLabel}`);
   await act(`(() => { document.getElementById('tab-receipt').click(); return true; })()`);
   await act(`(() => { const s = document.getElementById('country'); s.value = 'ch'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);

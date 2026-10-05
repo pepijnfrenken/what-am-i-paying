@@ -38,13 +38,16 @@ active country — ticket price, what it could cost, what it really costs, % to
 the government — with the current marginal rate; clicking a row loads that item.
 A second tab, **"Where does my money go?"** (NL: "Waar gaat mijn geld heen?"),
 starts from your **gross yearly income** (default: the country's documented
-modal salary); your income tax is derived with the site's own wage-wedge
-model (gross × marginal rate — no separate bracket engine), shown as a route
-line with the effective %, and you can switch to entering the tax directly.
-The tax is compared against what you cost in social security (per-capita
-baseline) and the surplus is split over the published 2026 budget categories —
-data and split rule in `countries/where-goes-2026.md`, disclaimer that taxes
-are not earmarked.
+modal salary). The income tax is computed with per-country annual functions
+from the sourced rules — NL loonheffing (brackets minus arbeids- and
+algemene-heffingskorting), UK income tax **without NI** (labelled, gov.uk
+2026/27 thresholds), BG ДОД (10 % over gross minus capped contributions),
+CH direkte Bundessteuer (federal tariff only) — shown as a route line with
+the **effective rate** (tax/gross), and you can switch to entering the tax
+directly. The tax is compared against what you cost in social security
+(per-capita baseline) and the surplus is split over the published 2026 budget
+categories — data and split rule in `countries/where-goes-2026.md`, disclaimer
+that taxes are not earmarked.
 
 ## Adding a country (4 steps)
 
