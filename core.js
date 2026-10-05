@@ -19,6 +19,15 @@
   WAIP.num = v => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
   const pct = v => (v * 100).toFixed(0) + '%';
 
+  // language: 'native' | 'en' (set by mount from ?lang=). Countries that
+  // provide cfg.copyEn (full English mirror) get the language control;
+  // without copyEn the site always renders native.
+  let lang = 'native';
+  const labelCopy = cfg => (lang === 'en' && cfg.copyEn) ? cfg.copyEn : cfg.copy;
+  const presetLabel = p => (lang === 'en' && p.nameEn) ? p.nameEn : p.name;
+  const bandLabel = b => (lang === 'en' && b.labelEn) ? b.labelEn : b.label;
+  const presetNoDuty = p => (lang === 'en' && p && p.noDutyLabelEn) ? p.noDutyLabelEn : (p && p.noDutyLabel);
+
   // marginal rate -> "28" or "37.5"; nukes float noise (0.28*100 is
   // 28.000000000000004, which used to print "28.0"). Country copies apply
   // their own decimal comma if needed.
@@ -63,7 +72,7 @@
 
   const PANELS = {
     alcohol(cfg) {
-      const L = cfg.copy.panels.alcohol;
+      const L = labelCopy(cfg).panels.alcohol;
       let h = `<div class="field"><label for="cat">${L.cat}</label><select id="cat">` +
         cfg.panels.alcohol.cats.map(o => `<option value="${o.v}">${o.t}</option>`).join('') + `</select></div>`;
       if (cfg.panels.alcohol.plato) {
@@ -81,32 +90,32 @@
       return h;
     },
     drinks(cfg) {
-      const L = cfg.copy.panels.drinks;
+      const L = labelCopy(cfg).panels.drinks;
       let h = `<div class="row field">${inpCell('dml', L.ml, 'min="0" step="1"')}${selCell('dband', L.band, cfg.panels.drinks.bands)}</div>`;
       if (L.hint) h += `<div class="hint">${L.hint}</div>`;
       return h;
     },
     cigs(cfg) {
-      return inpFull('sticks', cfg.copy.panels.cigs.sticks, 'min="0" step="1"');
+      return inpFull('sticks', labelCopy(cfg).panels.cigs.sticks, 'min="0" step="1"');
     },
     fuel(cfg) {
-      const L = cfg.copy.panels.fuel;
+      const L = labelCopy(cfg).panels.fuel;
       let h = cfg.panels.fuel.types ? `<div class="field"><label for="fueltype">${L.type}</label><select id="fueltype">` +
         cfg.panels.fuel.types.map(o => `<option value="${o.v}">${o.t}</option>`).join('') + `</select></div>` : '';
       h += inpFull('litres', L.litres, 'min="0" step="0.1"');
       return h;
     },
     energy(cfg) {
-      const L = cfg.copy.panels.energy;
+      const L = labelCopy(cfg).panels.energy;
       let h = `<div class="row field">${inpCell('kwh', L.kwh, 'min="0" step="1"')}${inpCell('m3', L.m3, 'min="0" step="0.1"')}</div>`;
       if (L.hint) h += `<div class="hint">${L.hint}</div>`;
       return h;
     },
     vape(cfg) {
-      return inpFull('vml', cfg.copy.panels.vape.ml, 'min="0" step="1"');
+      return inpFull('vml', labelCopy(cfg).panels.vape.ml, 'min="0" step="1"');
     },
     custom(cfg) {
-      const L = cfg.copy.panels.custom;
+      const L = labelCopy(cfg).panels.custom;
       return `<div class="row field">${inpCell('cfix', L.fix, 'min="0" step="0.01"')}${inpCell('cpct', L.pct, 'min="0" step="0.1"')}</div>`;
     }
   };
@@ -122,12 +131,13 @@
     for (const id of INPUT_IDS) { const el = $(id); if (el) panel[id] = el.value; }
     const dr = $('draught');
     if (dr) panel.draughtOn = dr.checked;
-    return { preset, price: WAIP.num($('price').value), vatRate: WAIP.num($('vat').value), marginal, kind: preset.kind, panel };
+    return { preset, lang, price: WAIP.num($('price').value), vatRate: WAIP.num($('vat').value), marginal, kind: preset.kind, panel };
   }
 
   function renderPanels(cfg, kind) {
     const host = $('panels');
-    const pending = (cfg.ratesStatus && cfg.ratesStatus !== 'ok') ? `<div class="hint" style="color:#94365A">${cfg.copy.ratesPending}</div>` : '';
+    const C = labelCopy(cfg);
+    const pending = (cfg.ratesStatus && cfg.ratesStatus !== 'ok') ? `<div class="hint" style="color:#8A5A22">${C.ratesPending}</div>` : '';
     if (kind === 'none' || !PANELS[kind]) { host.innerHTML = ''; $('duty-fields').hidden = true; return; }
     host.innerHTML = PANELS[kind](cfg) + pending;
     $('duty-fields').hidden = false;
@@ -135,9 +145,9 @@
 
   // ---------------------------------------------------------------- receipt
   function render(cfg, state, res) {
-    const C = cfg.copy, f = v => WAIP.formatMoney(cfg, v);
+    const C = labelCopy(cfg), f = v => WAIP.formatMoney(cfg, v);
     const R = C.receipt;
-    $('r-item').textContent = state.preset.name;
+    $('r-item').textContent = presetLabel(state.preset);
     $('r-sub').textContent = R.sub;
     $('r-price').textContent = f(res.price);
     $('r-vat-l').textContent = C.vatLine(res.vatRate);
@@ -145,7 +155,7 @@
     $('r-duty').textContent = f(-res.duty);
     $('r-duty-subs').innerHTML = res.dutyLines.length
       ? res.dutyLines.map(d => `<div class="line sub"><span>${d.label}</span><span>${f(d.v)}</span></div>`).join('')
-      : `<div class="line sub"><span>${(state.preset && state.preset.noDutyLabel) || C.noDuty}</span><span></span></div>`;
+      : `<div class="line sub"><span>${presetNoDuty(state.preset) || C.noDuty}</span><span></span></div>`;
     $('r-under').textContent = f(res.under);
     $('r-under-sub').textContent = R.underSub;
     $('r-tax-l').textContent = C.taxLine(res.marginal);
@@ -176,29 +186,32 @@
   // ---------------------------------------------------------------- mount
   WAIP.mount = function (defaultCode) {
     const csel = $('country');
+    const langSel = $('lang');
+    const params = new URLSearchParams(location.search);
+    lang = params.get('lang') === 'en' ? 'en' : 'native';
     for (const c of WAIP.order) { const o = document.createElement('option'); o.value = c; o.textContent = WAIP.countries[c].name; csel.appendChild(o); }
     let cfg = WAIP.countries[defaultCode] || WAIP.countries[WAIP.order[0]];
 
     function loadPresets() {
       const selEl = $('item');
       selEl.innerHTML = '';
-      for (const [k, p] of Object.entries(cfg.presets)) { const o = document.createElement('option'); o.value = k; o.textContent = p.name; selEl.appendChild(o); }
+      for (const [k, p] of Object.entries(cfg.presets)) { const o = document.createElement('option'); o.value = k; o.textContent = presetLabel(p); selEl.appendChild(o); }
     }
     function loadTaxBands() {
       const el = $('band-tax');
       el.innerHTML = '';
       for (const b of cfg.taxBands) {
-        const o = document.createElement('option'); o.value = String(b.rate); o.textContent = b.label;
+        const o = document.createElement('option'); o.value = String(b.rate); o.textContent = bandLabel(b);
         if (b.selected) o.selected = true;
         el.appendChild(o);
       }
-      const o = document.createElement('option'); o.value = 'custom'; o.textContent = cfg.copy.customBandLabel;
+      const o = document.createElement('option'); o.value = 'custom'; o.textContent = labelCopy(cfg).customBandLabel;
       el.appendChild(o);
     }
     function loadVat() {
       const el = $('vat');
       el.innerHTML = '';
-      for (const v of cfg.copy.vatOptions) {
+      for (const v of labelCopy(cfg).vatOptions) {
         const o = document.createElement('option'); o.value = String(v.v); o.textContent = v.t;
         if (v.selected) o.selected = true;
         el.appendChild(o);
@@ -218,29 +231,48 @@
       calc();
     }
     function applyStaticCopy() {
-      document.title = cfg.copy.docTitle || cfg.copy.title;
-      document.documentElement.lang = cfg.copy.lang || cfg.code;
-      $('title').textContent = cfg.copy.title;
-      $('lede').textContent = cfg.copy.lede;
-      $('country-label').textContent = cfg.copy.countryLabel;
-      $('item-label').textContent = cfg.copy.itemLabel;
-      $('price-label').textContent = cfg.copy.priceLabel;
-      $('price-hint').textContent = cfg.copy.priceHint;
+      const C = labelCopy(cfg);
+      document.title = C.docTitle || C.title;
+      document.documentElement.lang = C.lang || cfg.code;
+      $('title').textContent = C.title;
+      $('lede').textContent = C.lede;
+      $('country-label').textContent = C.countryLabel;
+      $('item-label').textContent = C.itemLabel;
+      $('price-label').textContent = C.priceLabel;
+      $('price-hint').textContent = C.priceHint;
       $('price-prefix').textContent = cfg.currency.symbol;
-      $('vat-label').textContent = cfg.copy.vatLabel;
-      $('panels-title').textContent = cfg.copy.dutyTitle;
-      $('tax-title').textContent = cfg.copy.taxTitle;
-      $('tax-label').textContent = cfg.copy.taxLabel;
-      $('tax-hint').textContent = cfg.copy.taxHint;
-      $('crate-label').textContent = cfg.copy.customRateLabel;
-      $('r-head-real-label').textContent = cfg.copy.receipt.hReal;
-      $('r-head-could-label').textContent = cfg.copy.receipt.hCould;
-      $('r-head-price').textContent = cfg.copy.receipt.priceLine;
-      $('r-head-duty').textContent = cfg.copy.receipt.dutyLine;
-      $('r-head-under').textContent = cfg.copy.receipt.underLine;
-      $('r-head-gross').textContent = cfg.copy.receipt.grossLine;
-      $('notes-title').textContent = cfg.copy.notesTitle;
-      $('notes-caveats-title').textContent = cfg.copy.notesCaveatsTitle;
+      $('vat-label').textContent = C.vatLabel;
+      $('panels-title').textContent = C.dutyTitle;
+      $('tax-title').textContent = C.taxTitle;
+      $('tax-label').textContent = C.taxLabel;
+      $('tax-hint').textContent = C.taxHint;
+      $('crate-label').textContent = C.customRateLabel;
+      $('r-head-real-label').textContent = C.receipt.hReal;
+      $('r-head-could-label').textContent = C.receipt.hCould;
+      $('r-head-price').textContent = C.receipt.priceLine;
+      $('r-head-duty').textContent = C.receipt.dutyLine;
+      $('r-head-under').textContent = C.receipt.underLine;
+      $('r-head-gross').textContent = C.receipt.grossLine;
+      $('notes-title').textContent = C.notesTitle;
+      $('notes-caveats-title').textContent = C.notesCaveatsTitle;
+    }
+    function buildLangOptions() {
+      langSel.innerHTML = '';
+      $('lang-label').textContent = labelCopy(cfg).langLabel || 'Language';
+      if (!cfg.copyEn) { langSel.hidden = true; return; }
+      langSel.hidden = false;
+      for (const [v, t] of [['native', cfg.langNative || 'Native'], ['en', 'English']]) {
+        const o = document.createElement('option'); o.value = v; o.textContent = t; langSel.appendChild(o);
+      }
+      langSel.value = lang;
+    }
+    function renderCurrent(preserveItem) {
+      if (lang === 'en' && !cfg.copyEn) lang = 'native';
+      const cur = preserveItem && Object.prototype.hasOwnProperty.call(cfg.presets, $('item').value)
+        ? $('item').value : Object.keys(cfg.presets)[0];
+      applyStaticCopy(); loadVat(); loadTaxBands(); loadPresets(); buildLangOptions();
+      $('item').value = cur;
+      applyPreset(cur);
     }
     function calc() {
       const st = collectState(cfg);
@@ -250,15 +282,14 @@
     }
     function switchCountry(code) {
       cfg = WAIP.countries[code];
-      applyStaticCopy(); loadVat(); loadTaxBands(); loadPresets();
-      const first = Object.keys(cfg.presets)[0];
-      $('item').value = first;
-      applyPreset(first);
+      renderCurrent(false);
     }
 
     csel.addEventListener('change', () => switchCountry(csel.value));
+    langSel.addEventListener('change', () => { lang = langSel.value; renderCurrent(true); });
     $('item').addEventListener('change', () => applyPreset($('item').value));
     document.querySelectorAll('input,select').forEach(el => {
+      if (el === langSel) return;
       el.addEventListener('input', () => { if (el !== csel && el !== $('item')) calc(); });
       el.addEventListener('change', () => { if (el !== csel && el !== $('item')) calc(); });
     });
