@@ -48,6 +48,9 @@
       cola:    { name: 'Blikje cola (330ml)', price: 0.95, vat: 0.21, kind: 'drinks', panel: { dml: 330, dband: 'regular' } },
       bread:   { name: 'Brood (9% btw)', price: 1.30, vat: 0.09, kind: 'none' },
       power:   { name: 'Stroom, 1 kWh', price: 0.26, vat: 0.21, kind: 'energy', panel: { kwh: 1, m3: 0 } },
+      vliegticket: { name: 'Vliegticket (vliegbelasting per vertrek)', price: 100.00, vat: 0.21, kind: 'custom', fixLabel: 'Vliegbelasting (€ 30,25 per vertrekkende passagier)', panel: { cfix: 30.25, cpct: 0 } },
+      autoverzekering: { name: 'Autoverzekering (jaarpremie, indicatief)', price: 600.00, vat: 'vrij', kind: 'custom', pctLabel: 'Assurantiebelasting 21% van de premie', panel: { cfix: 0, cpct: 21 } },
+      boek:    { name: 'Boek (9% btw)', price: 15.00, vat: 0.09, kind: 'none' },
       custom:  { name: 'Iets anders', price: 10.00, vat: 0.21, kind: 'custom', panel: { cfix: 0, cpct: 0 } }
     },
     // Effectieve marginale tarieven 2026: loonheffing incl. premies
@@ -111,8 +114,9 @@
         if (R.energy.m3 != null) out.push({ label: 'Energiebelasting gas', v: num(p.m3) * R.energy.m3 });
       } else if (kind === 'custom') {
         const f = num(p.cfix), pc = num(p.cpct) / 100;
-        if (f) out.push({ label: 'Vaste heffing', v: f });
-        if (pc) out.push({ label: `Heffing ${(pc * 100).toFixed(1).replace('.', ',')}% van prijs`, v: pc * price });
+        const preset = state.preset;
+        if (f) out.push({ label: (preset && preset.fixLabel) || 'Vaste heffing', v: f });
+        if (pc) out.push({ label: (preset && preset.pctLabel) || `Heffing ${(pc * 100).toFixed(1).replace('.', ',')}% van prijs`, v: pc * price });
       }
       return out;
     },
@@ -129,7 +133,8 @@
       vatOptions: [
         { v: 0.21, t: 'Algemeen, 21%', selected: true },
         { v: 0.09, t: 'Verlaagd, 9% (bijv. eten, boeken)' },
-        { v: 0, t: 'Nultarief, 0% (bijv. export)' }
+        { v: 0, t: 'Nultarief, 0% (bijv. export)' },
+        { v: 'vrij', t: 'Vrijgesteld, 0% (o.a. verzekeringen)' }
       ],
       dutyTitle: 'Accijns & heffingen',
       taxTitle: 'Jouw belasting',
