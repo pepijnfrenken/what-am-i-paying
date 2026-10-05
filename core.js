@@ -251,6 +251,11 @@
       el.addEventListener('change', () => { if (el !== csel && el !== $('item')) calc(); });
     });
     $('band-tax').addEventListener('change', calc);
+    // The duty-panel fields are re-created on every preset/country change, so
+    // they never get the listeners above. Bind once on the static container
+    // and delegate: every edit inside the duty panel recalculates the receipt.
+    const panelsEl = $('panels');
+    ['input', 'change'].forEach(ev => panelsEl.addEventListener(ev, () => calc()));
 
     csel.value = cfg.code;
     switchCountry(cfg.code);
