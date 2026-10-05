@@ -204,6 +204,7 @@ async function main() {
       bandOptions: Array.from(bt.options).map(o => o.value),
       itemOptions: Array.from(g('item').options).map(o => o.textContent),
       vatOptions: Array.from(g('vat').options).map(o => o.textContent),
+      vatSelected: g('vat').selectedOptions[0] ? g('vat').selectedOptions[0].textContent : null,
       r: {
         item: txt('r-item'), price: txt('r-price'), vat: txt('r-vat'), duty: txt('r-duty'),
         under: txt('r-under'), gross: txt('r-gross'), could: txt('h-could'), real: txt('h-real'),
@@ -328,6 +329,14 @@ async function main() {
   check('NL: margin line in comma decimals (49,5%)', snap.r.taxL === 'Plus inkomstenbelasting (49,5%)', snap.r.taxL);
   check('NL: duty panel rendered (bier cat)', snap.panelsText.includes('Bier') && 'abv' in snap.panel, '');
   cross('NL: glas pils matches WAIP.compute (Custom 49,5%)', WAIP.countries.nl, snap, ['price', 'vat', 'duty', 'under', 'gross', 'tax']);
+  // autoverzekering preset: vrijgesteld (0% btw), 21% assurantiebelasting
+  await act(`(() => { const s = document.getElementById('item'); s.value = 'autoverzekering'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('NL: autoverzekering — duty −€126,00 (comma) + assuredness line',
+    snap.r.duty === '−€126,00' && /€126,00/.test(snap.r.duty) && snap.r.dutySubs.includes('Assurantiebelasting'),
+    `${snap.r.duty} | ${snap.r.dutySubs.slice(0, 60)}`);
+  check('NL: autoverzekering — Min btw (0%) en Vrijgesteld geselecteerd',
+    snap.r.vatL === 'Min btw (0%)' && /Vrijgesteld/.test(snap.vatSelected), `${snap.r.vatL} | ${snap.vatSelected}`);
   const nlErrs = snapshotErrors();
   check('NL: zero console errors / uncaught exceptions', nlErrs.length === 0, nlErrs.join(' | '));
 
