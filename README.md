@@ -1,10 +1,147 @@
-# What am I actually paying? — modular multi-country build
+# What am I actually paying?
 
-A country-agnostic engine for the "what do I actually pay" concept: a product's
-ticket price is decomposed into seller revenue, duties/excises, VAT, and the
-income tax + social contributions on the wage you earned to buy it. Currently
-ships with **Nederland** (`nl`), **United Kingdom** (`uk`),
-**Schweiz** (`ch`) and **България** (`bg`).
+A price tag hides most of the tax inside it. This site takes the price of an
+everyday item and splits it into what the seller keeps, the duty, the VAT, and
+the income tax you paid on the wage you earned to buy it. A second tab starts from your yearly salary and shows where your income tax goes.
+
+**Live:** <https://pepijnfrenken.github.io/what-am-i-paying/>
+
+It covers the Netherlands, the United Kingdom, Switzerland and Bulgaria, with
+2026 rates, in each country's own language and in English.
+
+## Example: one litre of petrol
+
+The site's default pump price in each country, at its default marginal tax rate:
+
+| | Netherlands | United Kingdom | Switzerland | Bulgaria |
+|---|---:|---:|---:|---:|
+| Pump price | €2.45 | £1.45 | CHF 2.10 | €1.68 |
+| Fuel duty | €0.85 | £0.53 | CHF 0.77 | €0.36 |
+| VAT | €0.43 | £0.24 | CHF 0.16 | €0.28 |
+| What it could cost (price without duty or VAT) | €1.17 | £0.68 | CHF 1.17 | €1.04 |
+| Income tax on the wage you earned to pay for it | €1.77 | £0.56 | CHF 1.00 | €0.48 |
+| **What you really pay (gross wage)** | **€4.22** | **£2.01** | **CHF 3.10** | **€2.16** |
+| Share that goes to the state | 72 % | 66 % | 62 % | 52 % |
+| Marginal rate used | 42 % | 28 % | 32.3 % (Zürich) | 22.4 % |
+
+In the Netherlands, someone in the 42 % band earns €4.22 before tax to buy
+€2.45 of petrol. Of that, €3.05 goes to the government and €1.17 to the
+station and its suppliers.
+
+## How it works
+
+**Receipt tab.** Pick an item and adjust the price or the product details.
+
+1. VAT comes off the full price first, because VAT is charged on top of duty:
+   `vat = price × r / (1 + r)`.
+2. Duties come off next. Each country module computes its own: beer by % vol
+   in the Netherlands and by °Plato in Switzerland and Bulgaria, spirits per
+   litre of pure alcohol, cigarettes per stick plus a share of the price, fuel
+   per litre.
+3. What remains is what the item could cost without tax.
+4. The wage wedge: to have `price` left after tax at marginal rate `m`, you
+   have to earn `gross = price / (1 − m)`. The difference is the income tax
+   and contributions on that wage.
+
+The marginal rate comes from a list of documented bands per country (or your
+own number) and is applied flat. That is an approximation of your real tax
+position, and the info buttons on the page say so.
+
+**Where does my money go?** Enter a gross yearly income. Each country computes
+its annual income tax from the sourced rules: Dutch wage tax with the general
+and employment credits, UK income tax without National Insurance, the Swiss
+federal direct tax only, and Bulgaria's flat 10 % after social contributions.
+The result is compared with what the state spends per person on social
+security. If you pay more than that, the rest is split over the published
+budget categories in proportion to their size. Taxes are not earmarked; the
+split shows proportions, not where your particular money went.
+
+## Run it
+
+Open `index.html` in a browser. There is no build step and nothing to install;
+`file://` works. To serve it instead: `python3 -m http.server`.
+
+`?c=nl`, `?c=uk`, `?c=ch` or `?c=bg` picks a country. `?lang=en` shows the
+English copy for countries whose native language is not English.
+
+## Layout
+
+```
+index.html             page shell; loads core.js and the registry
+core.js                engine and UI: VAT, duty, wage wedge, receipt, budget split
+countries/index.js     the registry: every country, its currency and files, and
+                       the contract a country module must follow
+countries/<code>.js    one module per country: rates, presets, duty math,
+                       income tax, all user-visible text
+countries/*.md         the sources: one rates doc per country, plus shared docs
+                       for groceries, Big Mac prices and the budget split
+test/run_all.mjs       runs everything below, driven by the registry
+test/<code>_check.mjs  per-country checks against hand-computed values
+test/dom_check.mjs     real-browser check of the page (headless Chromium)
+scripts/new-country.mjs  scaffold for a new country
+```
+
+## Add a country
+
+```bash
+node scripts/new-country.mjs de --name Deutschland --name-en Germany --symbol "€" --locale de
+```
+
+This writes a stub module, a rates-doc skeleton, a checker and the registry
+entry. The page keeps working with the stub, and CI stays red until the
+checker has hand-computed anchors from the rates doc. Nothing else needs
+editing. [CONTRIBUTING.md](CONTRIBUTING.md) has the full path and the
+sourcing standard.
+
+## Data and disclaimers
+
+Every rate, threshold, price and budget figure in the code comes from a
+document in `countries/` that gives the source and effective date of each
+number and lists what is uncertain: `nl-rates-2026.md`, `uk-rates-2026.md` and
+`uk-tax-2026.md`, `ch-rates-2026.md`, `bg-rates-2026.md`, plus
+`groceries-2026.md`, `bigmac-2026.md` and `where-goes-2026.md`. If a number is
+not in a doc, it should not be in the code.
+
+This is an illustration, not tax advice. Things to keep in mind:
+
+- The receipt uses one marginal rate for the whole wage. Real tax depends on
+  your full income, credits and situation.
+- "What it could cost" still contains taxes the seller pays: employer
+  contributions, business rates, corporation tax, import duties. The real
+  government share is higher than shown.
+- The Swiss income-tax route is the federal tax only. Cantonal and communal
+  income tax, usually the larger part, is not included yet.
+- The UK income-tax route leaves out National Insurance, and is labelled that
+  way on the page.
+- The UK duty rates were taken from the original UK page and have not been
+  independently re-checked against gov.uk in this repository. The UK income
+  tax rules have.
+- Prices are typical defaults with an as-of date. Rates are 2026 values and
+  will go out of date.
+
+Corrections with a source are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Tests
+
+```bash
+node test/run_all.mjs
+```
+
+For every country in the registry this checks that the country's files exist
+and its module follows the contract, then runs its checker. After that a
+headless browser loads the page in every country and language and compares
+what is on screen with the engine. CI runs it on every push and pull request,
+and the GitHub Pages deploy runs it as a gate.
+
+The checkers compare the code with values computed by hand from the rates docs,
+and each income-tax function with published reference values (tax-authority
+tables, or calculators that follow the authority's method): NL wage tax on
+€44,000 is €7,966.21, UK income tax on £110,000 is £33,432, the Swiss federal
+tax on CHF 80,000 is CHF 1,378.22, and Bulgarian income tax on €30,000 is
+€2,637.84.
+
+Node 21 or newer is needed. The browser check needs Chromium or Chrome; see
+[CONTRIBUTING.md](CONTRIBUTING.md#run-the-tests).
 
 ## Credit
 
@@ -14,104 +151,6 @@ This project started as a rebuild of that idea for the Dutch system and grew
 into a modular tool for several countries. Full credit for the original idea
 to its author.
 
-## Layout
+## License
 
-```
-index.html            UI shell (static markup; all texts filled by the active country)
-core.js               engine + UI: wage wedge, VAT extraction, panels, receipt, formatting
-countries/nl.js       Netherlands: rates, presets, Dutch copy + NL duty mechanics
-countries/uk.js       United Kingdom: mirrors the original UK page (regression-tested)
-countries/ch.js       Switzerland: German copy, °Plato beer bands, no duty on wine
-countries/bg.js       Bulgaria: Bulgarian copy, °Plato beer, spirits per hl pure alcohol
-test/uk_check.mjs     verifies the UK port reproduces the original page's math exactly
-test/nl_check.mjs     verifies the NL module against the sourced 2026 rates
-test/ch_check.mjs     verifies the CH module against the sourced 2026 rates
-test/bg_check.mjs     verifies the BG module against the sourced 2026 rates
-```
-
-The live site is at **https://pepijnfrenken.github.io/what-am-i-paying/**
-(`?c=nl` | `?c=uk` | `?c=ch` | `?c=bg` switches country).
-No dependencies, no build step — for local development, open `index.html`
-directly in a browser (`file://` works).
-
-## UI
-
-Light-only theme (no dark variant). The country bar shows a language control
-for countries that ship an English mirror (`copyEn`): `?lang=en` selects
-English, `?lang=native` (default) the native copy, and the choice survives
-country switches. Countries without `copyEn` (UK, native == English) hide the
-control. Duty-line labels follow the language via `state.lang`. A **"Show all"
-comparison view** (NL: "Toon alles", EN: "Show all") tables every preset of the
-active country — ticket price, what it could cost, what it really costs, % to
-the government — with the current marginal rate; clicking a row loads that item.
-A second tab, **"Where does my money go?"** (NL: "Waar gaat mijn geld heen?"),
-starts from your **gross yearly income** (default: the country's documented
-modal salary). The income tax is computed with per-country annual functions
-from the sourced rules — NL loonheffing (brackets minus arbeids- and
-algemene-heffingskorting), UK income tax **without NI** (labelled, gov.uk
-2026/27 thresholds), BG ДОД (10 % over gross minus capped contributions),
-CH direkte Bundessteuer (federal tariff only) — shown as a route line with
-the **effective rate** (tax/gross), and you can switch to entering the tax
-directly. The tax is compared against what you cost in social security
-(per-capita baseline) and the surplus is split over the published 2026 budget
-categories — data and split rule in `countries/where-goes-2026.md`, disclaimer
-that taxes are not earmarked.
-
-Control labels and key figures carry small **info triggers** (ⓘ): one shared
-popover implementation, opened by click/tap or keyboard focus, closed by
-Escape, click-away or a second click; texts follow the language (copy/copyEn).
-
-## Adding a country (4 steps)
-
-1. **Copy the template:** `cp countries/nl.js countries/<cc>.js`.
-2. **Register the config:** `code`, `name`, `currency` (`symbol`, `decimals`,
-   `decimalComma`), `presets` (item list: name, default price, VAT level(s),
-   `kind`, `panel` input defaults), `taxBands` (marginal-rate dropdown options),
-   `panels` (which sub-options each input group offers, e.g. fuel types).
-3. **Implement `computeDuties(state, cfg)`:** the country-specific duty math.
-   Return `[{label, v}]` lines — labels are display strings, `v` is a money
-   amount. `state.panel` carries the raw input values (strings — use `WAIP.num`).
-   `state.kind` is the active product kind: `alcohol | drinks | cigs | fuel |
-   energy | vape | custom | none`.
-4. **Write `copy`:** every user-visible string (title, labels, hints, receipt
-   labels, `take(res)` sentence, `notesRates`/`notesCaveats` with sources).
-   Then include the file in `index.html` and pick it via `?c=<cc>`.
-
-Kinds are UI shapes; a country only uses the kinds it needs, and a country can
-extend the mechanics freely (duty math lives in the country file — see NL's
-°Plato beer conversion vs UK's pure-alcohol rates for an example).
-
-## Rules of the road
-
-- **Rates must be sourced.** Each country's `notesRates` must name the source
-  and effective date (Belastingdienst/Rijksoverheid/CBS for NL, gov.uk for UK).
-  Set `ratesStatus: 'pending'` until an independent check confirms the numbers —
-  the UI then shows a warning next to the duty inputs.
-- **Money formatting is per-country** (`decimalComma` for NL, dot for UK).
-- **The wage wedge is generic:** gross = price / (1 − marginal rate). Countries
-  only supply the *band list*; the math lives in `core.js`.
-- **Duty is taken off a VAT-inclusive price first** (VAT is charged on top of
-  duty), then excluded from "what it could cost" — same convention as the
-  original UK page.
-
-## Verification
-
-```bash
-node test/uk_check.mjs    # UK math vs the original page's verbatim formulas
-node test/nl_check.mjs    # NL 2026 sourced rates: hand-computed duty anchors (1e-9)
-node test/ch_check.mjs    # CH 2026 sourced rates: °Plato beer, spirits, fuel anchors (1e-9)
-node test/bg_check.mjs    # BG 2026 sourced rates: °Plato beer, rakiya, cigarettes anchors (1e-9)
-node test/dom_check.mjs   # real-browser DOM check (headless chromium, node >= 21)
-```
-
-`uk_check.mjs` checks the modular UK module against the original page's
-verbatim formulas (per-preset deltas must be 0) plus hand-computed anchor
-values. `dom_check.mjs` serves the page with `python3 -m http.server` and
-drives a headless Chromium over CDP: it asserts the UK/NL receipts (each
-figure cross-checked against `WAIP.compute` in node, tol 0.005), country
-switching, duty-panel re-rendering and recalculation, the NL comma-decimal
-format, zero console errors, and zero failed subresources. Favicon 404s are
-waived and reported. Set `WAIP_CHROME`, `WAIP_PORT`, `WAIP_DBG_PORT` to
-override the browser binary or ports. When adding a country, add its own
-checker next to it (compare `WAIP.compute` against independently computed
-values for 3–4 presets).
+[MIT](LICENSE)
