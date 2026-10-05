@@ -37,6 +37,7 @@ eval(read('core.js'));
 eval(read('countries/uk.js'));
 eval(read('countries/nl.js'));
 eval(read('countries/ch.js'));
+eval(read('countries/bg.js'));
 const WAIP = globalThis.WAIP;
 
 function num(v) { const n = parseFloat(v); return isFinite(n) ? n : 0; }
@@ -346,7 +347,7 @@ async function main() {
   await navigate(`${BASE}/?c=ch`);
   snap = await snapshot();
   check('CH: page renders (German title)', snap.title.includes('Was zahle ich wirklich?'), snap.title);
-  check('CH: country selector lists nl/uk/ch', snap.countries.length === 3 && snap.countries.join(',') === 'nl:Nederland,uk:United Kingdom,ch:Schweiz', snap.countries.join(','));
+  check('CH: country selector lists nl/uk/ch/bg', snap.countries.length === 4 && snap.countries.join(',') === 'nl:Nederland,uk:United Kingdom,ch:Schweiz,bg:България', snap.countries.join(','));
   check('CH: default item Bier 5 dl; gross CHF 11.08 (dot decimals)',
     snap.r.item === 'Bier 5 dl in der Bar, 12°P' && snap.r.gross === 'CHF 11.08' &&
     /^CHF \d+\.\d{2}$/.test(snap.r.gross) && !snap.r.gross.includes(','),
@@ -365,6 +366,31 @@ async function main() {
   const chErrs = snapshotErrors();
   check('CH: zero console errors / uncaught exceptions', chErrs.length === 0, chErrs.join(' | '));
 
+  // ================================================================ BG phase
+  await navigate(`${BASE}/?c=bg`);
+  snap = await snapshot();
+  check('BG: page renders (Bulgarian title)', snap.title.includes('Какво всъщност плащам?'), snap.title);
+  check('BG: country selector lists nl/uk/ch/bg', snap.countries.length === 4 && snap.countries.join(',') === 'nl:Nederland,uk:United Kingdom,ch:Schweiz,bg:България', snap.countries.join(','));
+  check('BG: default item бира; gross €5,15 (comma decimals) @ 22,4 %',
+    snap.r.item.includes('Бира') && snap.r.gross === '€5,15' && /^€\d+,\d{2}$/.test(snap.r.gross),
+    `${snap.r.item} | ${snap.r.gross}`);
+  check('BG: default band 22,40 %', snap.band === '0.224', snap.band);
+  check('BG: VAT options (20 / 9 / 0)', snap.vatOptions.length === 3 && snap.vatOptions[0].includes('20 %'), snap.vatOptions.join(', ').slice(0, 60));
+  check('BG: plato field rendered (11°P preset)', 'plato' in snap.panel && snap.panel.plato === '11', `plato=${snap.panel.plato}`);
+  await act(`(() => { const s = document.getElementById('item'); s.value = 'rakiya'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('BG: ракия duty line −€1,57 (comma)', snap.r.duty === '−€1,57', snap.r.duty);
+  cross('BG: ракия matches WAIP.compute', WAIP.countries.bg, snap, ['price', 'vat', 'duty', 'under', 'gross', 'tax']);
+  await act(`(() => { const s = document.getElementById('item'); s.value = 'hlyab'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('BG: хляб — 20 % ДДС (no reduced rate), no duty', snap.vatSelected.includes('20 %') && snap.r.vatL === 'Минус ДДС (20%)',
+    `${snap.vatSelected} | ${snap.r.vatL}`);
+  await act(`(() => { const s = document.getElementById('item'); s.value = 'tok'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('BG: ток preset noDutyLabel shown', snap.r.dutySubs.includes('освободени от акциз'), snap.r.dutySubs.slice(0, 70));
+  const bgErrs = snapshotErrors();
+  check('BG: zero console errors / uncaught exceptions', bgErrs.length === 0, bgErrs.join(' | '));
+
   // ================================================================ network
   const resp = history.filter(ev => ev.method === 'Network.responseReceived').map(ev => ({ url: ev.params.response.url, status: ev.params.response.status }));
   // loadingFailed carries no URL; map requestId -> url from responseReceived
@@ -375,9 +401,9 @@ async function main() {
     canceled: !!ev.params.canceled
   }));
 
-  for (const file of ['index.html', 'core.js', 'countries/nl.js', 'countries/uk.js', 'countries/ch.js']) {
+  for (const file of ['index.html', 'core.js', 'countries/nl.js', 'countries/uk.js', 'countries/ch.js', 'countries/bg.js']) {
     const hits = resp.filter(r => file === 'index.html'
-      ? (r.url === `${BASE}/?c=uk` || r.url === `${BASE}/?c=nl` || r.url === `${BASE}/?c=ch` || r.url.endsWith('/index.html'))
+      ? (r.url === `${BASE}/?c=uk` || r.url === `${BASE}/?c=nl` || r.url === `${BASE}/?c=ch` || r.url === `${BASE}/?c=bg` || r.url.endsWith('/index.html'))
       : r.url.endsWith('/' + file));
     check(`NET: ${file} loaded 200`, hits.some(h => h.status === 200), hits.map(h => h.status).join(',') || 'not seen');
   }
