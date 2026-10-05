@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wat betaal ik eigenlijk?</title>
+<style>
+:root{
+  --bg:#D9E1E4; --panel:#F3F6F7; --paper:#FFFEF8; --ink:#1F252B; --muted:#5E6A72; --line:#C5CED3;
+  --c-under:#2F7A57; --c-duty:#B5781A; --c-vat:#4F5FB8; --c-tax:#94365A; --focus:#4F5FB8;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#1B2329; --panel:#232D34; --paper:#F4F1E6; --ink:#1F252B; --muted:#9AA7AF; --line:#36424A;
+    --c-under:#3E9A6E; --c-duty:#D0922E; --c-vat:#6E7DD6; --c-tax:#B5517A; --focus:#8E9BEA; }
+  body{color:#E7ECEE}
+}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+main{max-width:960px;margin:0 auto;padding:28px 18px 48px}
+h1{font-size:clamp(1.6rem,4.5vw,2.3rem);line-height:1.1;letter-spacing:-0.02em;margin:0 0 6px;font-weight:700}
+.lede{margin:0 0 24px;color:var(--muted);max-width:62ch}
+.grid{display:grid;gap:22px;grid-template-columns:1fr}
+@media (min-width:820px){.grid{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);align-items:start}}
+.controls{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+.field{margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+label{display:block;font-size:.85rem;font-weight:600;margin-bottom:5px}
+.hint{font-size:.78rem;color:var(--muted);margin-top:4px}
+select,input[type=number]{width:100%;font:inherit;font-size:1rem;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:#1F252B}
+input[type=number]{font-family:var(--mono)}
+select:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.check{display:flex;gap:8px;align-items:center;font-size:.9rem;font-weight:500}
+.check input{width:18px;height:18px;accent-color:var(--focus)}
+.group-title{font-size:.95rem;font-weight:700;margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
+.prefix{position:relative}
+.prefix span{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-family:var(--mono);color:#5E6A72}
+.prefix input{padding-left:26px}
+[hidden]{display:none !important}
+.receipt-wrap{display:flex;justify-content:center}
+.receipt{width:100%;max-width:440px;background:var(--paper);color:var(--ink);font-family:var(--mono);font-size:.9rem;padding:22px 20px 30px;position:relative;
+  box-shadow:0 1px 0 rgba(0,0,0,.04),0 12px 30px -18px rgba(20,30,40,.45);
+  -webkit-mask:radial-gradient(circle 6px at 50% 100%,transparent 98%,#000) 0 0/14px 100% repeat-x;
+          mask:radial-gradient(circle 6px at 50% 100%,transparent 98%,#000) 0 0/14px 100% repeat-x}
+.r-head{text-align:center;margin-bottom:14px}
+.r-head strong{display:block;font-size:1rem;font-weight:600}
+.r-head small{color:#6A747B}
+.rule{border:0;border-top:1px dashed #9AA3A9;margin:12px 0}
+.line{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
+.line .lbl{display:flex;gap:8px;align-items:baseline}
+.line.sub{padding-left:18px;color:#5E6A72;font-size:.82rem}
+.line.total{font-weight:600;font-size:1.02rem}
+.line.big{font-size:1.25rem;font-weight:600;padding:6px 0}
+.sw{display:inline-block;width:9px;height:9px;border-radius:2px;flex:none;transform:translateY(-1px)}
+.neg{white-space:nowrap}
+.bar{display:flex;height:22px;border-radius:3px;overflow:hidden;margin:16px 0 8px;background:#E8ECEE}
+.bar div{height:100%;transition:flex-basis .35s ease}
+@media (prefers-reduced-motion:reduce){.bar div{transition:none}}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:.78rem;color:#4A545B}
+.legend span{display:flex;gap:6px;align-items:center}
+.take{margin-top:14px;font-family:var(--sans);font-size:.95rem;line-height:1.4;color:#1F252B}
+.take b{font-family:var(--mono)}
+.warn{background:#FCEBD8;color:#7A3E0C;font-family:var(--sans);font-size:.85rem;padding:8px 10px;border-radius:5px;margin-top:10px}
+.heroes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 14px}
+.hero{border:1.5px solid #1F252B;border-radius:4px;padding:10px 10px 8px;text-align:center}
+.hero.real{background:#1F252B;color:#FFFEF8}
+.hero .k{font-family:var(--sans);font-size:.8rem;font-weight:600;display:block}
+.hero .v{font-size:1.6rem;font-weight:600;display:block;margin:2px 0}
+.hero .d{font-family:var(--sans);font-size:.72rem;opacity:.8;display:block;line-height:1.3}
+.mult{text-align:center;font-family:var(--sans);font-size:.95rem;margin:0 0 6px}
+.mult b{font-family:var(--mono)}
+.notes{margin-top:28px;font-size:.82rem;color:var(--muted);max-width:78ch}
+.notes p{margin:0 0 8px}
+.countrybar{display:flex;gap:10px;align-items:center;margin:0 0 18px}
+.countrybar label{margin:0;font-size:.85rem}
+.countrybar select{width:auto;min-width:180px}
+</style>
+</head>
+<body>
+<main>
+  <div class="countrybar">
+    <label for="country" id="country-label">Land</label>
+    <select id="country"></select>
+  </div>
+  <h1 id="title">Wat betaal ik eigenlijk?</h1>
+  <p class="lede" id="lede"></p>
+
+  <div class="grid">
+    <section class="controls" aria-label="Invoer">
+      <div class="field">
+        <label for="item" id="item-label">Product</label>
+        <select id="item"></select>
+      </div>
+      <div class="field">
+        <label for="price" id="price-label">Prijs</label>
+        <div class="prefix"><span id="price-prefix">&euro;</span><input id="price" type="number" step="0.01" min="0" inputmode="decimal"></div>
+        <div class="hint" id="price-hint"></div>
+      </div>
+      <div class="field">
+        <label for="vat" id="vat-label">Btw</label>
+        <select id="vat"></select>
+      </div>
+
+      <div id="duty-fields">
+        <div class="group-title" id="panels-title">Accijns &amp; heffingen</div>
+        <div id="panels"></div>
+      </div>
+
+      <div class="group-title" id="tax-title">Jouw belasting</div>
+      <div class="field">
+        <label for="band-tax" id="tax-label"></label>
+        <select id="band-tax"></select>
+        <div class="hint" id="tax-hint"></div>
+      </div>
+      <div class="field" id="custom-rate-wrap" hidden>
+        <label for="crate" id="crate-label"></label>
+        <input id="crate" type="number" min="0" max="99" step="0.5" value="49.5">
+      </div>
+    </section>
+
+    <section class="receipt-wrap" aria-live="polite">
+      <div class="receipt">
+        <div class="r-head"><strong id="r-item"></strong><small id="r-sub"></small></div>
+        <div class="heroes">
+          <div class="hero real"><span class="k" id="r-head-real-label"></span><span class="v" id="h-real"></span><span class="d" id="h-real-d"></span></div>
+          <div class="hero"><span class="k" id="r-head-could-label"></span><span class="v" id="h-could"></span><span class="d" id="h-could-d"></span></div>
+        </div>
+        <p class="mult" id="mult"></p>
+        <hr class="rule">
+        <div class="line total"><span id="r-head-price"></span><span id="r-price"></span></div>
+        <div class="line"><span class="lbl"><i class="sw" style="background:var(--c-vat)"></i><span id="r-vat-l"></span></span><span class="neg" id="r-vat"></span></div>
+        <div class="line"><span class="lbl"><i class="sw" style="background:var(--c-duty)"></i><span id="r-head-duty"></span></span><span class="neg" id="r-duty"></span></div>
+        <div id="r-duty-subs"></div>
+        <hr class="rule">
+        <div class="line big"><span class="lbl"><i class="sw" style="background:var(--c-under)"></i><span id="r-head-under"></span></span><span id="r-under"></span></div>
+        <div class="line sub"><span id="r-under-sub"></span><span></span></div>
+        <hr class="rule">
+        <div class="line"><span class="lbl"><i class="sw" style="background:var(--c-tax)"></i><span id="r-tax-l"></span></span><span id="r-tax"></span></div>
+        <div class="line big"><span id="r-head-gross"></span><span id="r-gross"></span></div>
+
+        <div class="bar" aria-hidden="true">
+          <div id="b-under" style="background:var(--c-under)"></div>
+          <div id="b-duty" style="background:var(--c-duty)"></div>
+          <div id="b-vat" style="background:var(--c-vat)"></div>
+          <div id="b-tax" style="background:var(--c-tax)"></div>
+        </div>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--c-under)"></i><span id="l-under"></span> <b id="p-under"></b></span>
+          <span><i class="sw" style="background:var(--c-duty)"></i><span id="l-duty"></span> <b id="p-duty"></b></span>
+          <span><i class="sw" style="background:var(--c-vat)"></i><span id="l-vat"></span> <b id="p-vat"></b></span>
+          <span><i class="sw" style="background:var(--c-tax)"></i><span id="l-tax"></span> <b id="p-tax"></b></span>
+        </div>
+        <p class="take" id="take"></p>
+        <div class="warn" id="warn" hidden></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="notes">
+    <p><b id="notes-title"></b> <span class="rates"></span></p>
+    <p><b id="notes-caveats-title"></b> <span class="caveats"></span></p>
+    <p><span class="credit"></span></p>
+  </div>
+</main>
+
+<script src="core.js"></script>
+<script src="countries/nl.js"></script>
+<script src="countries/uk.js"></script>
+<script>
+  WAIP.mount(new URLSearchParams(location.search).get('c') || 'nl');
+</script>
+</body>
+</html>

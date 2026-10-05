@@ -1,0 +1,63 @@
+# What am I actually paying? — modular multi-country build
+
+A country-agnostic engine for the "what do I actually pay" concept: a product's
+ticket price is decomposed into seller revenue, duties/excises, VAT, and the
+income tax + social contributions on the wage you earned to buy it. Currently
+ships with **Nederland** (`nl`) and **United Kingdom** (`uk`).
+
+## Layout
+
+```
+index.html            UI shell (static markup; all texts filled by the active country)
+core.js               engine + UI: wage wedge, VAT extraction, panels, receipt, formatting
+countries/nl.js       Netherlands: rates, presets, Dutch copy + NL duty mechanics
+countries/uk.js       United Kingdom: mirrors the original UK page (regression-tested)
+test/uk_check.mjs     verifies the UK port reproduces the original page's math exactly
+```
+
+No dependencies, no build step. Open `index.html` directly (`file://` works),
+or serve it: `python3 -m http.server` → http://localhost:8000/?c=nl
+
+## Adding a country (4 steps)
+
+1. **Copy the template:** `cp countries/nl.js countries/<cc>.js`.
+2. **Register the config:** `code`, `name`, `currency` (`symbol`, `decimals`,
+   `decimalComma`), `presets` (item list: name, default price, VAT level(s),
+   `kind`, `panel` input defaults), `taxBands` (marginal-rate dropdown options),
+   `panels` (which sub-options each input group offers, e.g. fuel types).
+3. **Implement `computeDuties(state, cfg)`:** the country-specific duty math.
+   Return `[{label, v}]` lines — labels are display strings, `v` is a money
+   amount. `state.panel` carries the raw input values (strings — use `WAIP.num`).
+   `state.kind` is the active product kind: `alcohol | drinks | cigs | fuel |
+   energy | vape | custom | none`.
+4. **Write `copy`:** every user-visible string (title, labels, hints, receipt
+   labels, `take(res)` sentence, `notesRates`/`notesCaveats` with sources).
+   Then include the file in `index.html` and pick it via `?c=<cc>`.
+
+Kinds are UI shapes; a country only uses the kinds it needs, and a country can
+extend the mechanics freely (duty math lives in the country file — see NL's
+°Plato beer conversion vs UK's pure-alcohol rates for an example).
+
+## Rules of the road
+
+- **Rates must be sourced.** Each country's `notesRates` must name the source
+  and effective date (Belastingdienst/Rijksoverheid/CBS for NL, gov.uk for UK).
+  Set `ratesStatus: 'pending'` until an independent check confirms the numbers —
+  the UI then shows a warning next to the duty inputs.
+- **Money formatting is per-country** (`decimalComma` for NL, dot for UK).
+- **The wage wedge is generic:** gross = price / (1 − marginal rate). Countries
+  only supply the *band list*; the math lives in `core.js`.
+- **Duty is taken off a VAT-inclusive price first** (VAT is charged on top of
+  duty), then excluded from "what it could cost" — same convention as the
+  original UK page.
+
+## Verification
+
+```bash
+node test/uk_check.mjs
+```
+
+Checks the modular UK module against the original page's verbatim formulas
+(per-preset deltas must be 0) plus hand-computed anchor values. When adding a
+country, add its own checker next to it (compare `WAIP.compute` against
+independently computed values for 3–4 presets).
