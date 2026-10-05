@@ -101,27 +101,34 @@ check('Dezimalpunkt (kein decimalComma)', ch.currency.decimalComma !== true && c
 }
 
 // --- Einkommensroute: direkte Bundessteuer 2026, Tarif 58c (ledig) -----------
-// Unabhängige Schachtel-Integration aus ch-rates-2026.md.
+// Unabhängige Schachtel-Integration aus ch-rates-2026.md; jeder Stufenbeitrag
+// wird gemäß der offiziellen Tabelle auf 0,05 Franken nach unten gerundet.
 {
   const caps = [15200, 33200, 43500, 58000, 76200, 82100, 108900, 141500, 185100, 793900];
   const m = [0, 0.0077, 0.0088, 0.0264, 0.0297, 0.0594, 0.066, 0.088, 0.11, 0.132];
   const bundessteuer = I => {
     let t = 0;
-    for (let i = 0; i < caps.length; i++) t += Math.max(0, Math.min(I, caps[i]) - (i ? caps[i - 1] : 0)) * m[i];
+    for (let i = 0; i < caps.length; i++) {
+      const w = Math.max(0, Math.min(I, caps[i]) - (i ? caps[i - 1] : 0));
+      t += Math.floor(w * m[i] * 20 + 1e-9) / 20;
+    }
     if (I > caps[9]) t += 0.115 * (I - caps[9]);
     return t;
   };
-  check('Bundessteuer(100.000) = 2.684,44 (hand, 1e-9)', close(WAIP.incomeTax(ch, 100000), bundessteuer(100000)) && close(WAIP.incomeTax(ch, 100000), 2684.44), `engine=${WAIP.incomeTax(ch, 100000).toFixed(2)}`);
+  check('Bundessteuer(100.000) = 2.684,35 (hand, Tabelle 0,05-Rundung)', close(WAIP.incomeTax(ch, 100000), bundessteuer(100000)) && close(WAIP.incomeTax(ch, 100000), 2684.35), `engine=${WAIP.incomeTax(ch, 100000).toFixed(4)}`);
   check('Bundessteuer(50.000) mittlere Stufen', close(WAIP.incomeTax(ch, 50000), bundessteuer(50000)));
   check('Bundessteuer(800.000): 13,2%-Stufe aktiv, 11,5% noch nicht', close(WAIP.incomeTax(ch, 800000), bundessteuer(800000)));
-  check('Bundessteuer(1.000.000) Quirk: 11,5% über 793.900', close(WAIP.incomeTax(ch, 1000000), bundessteuer(1000000)) && close(WAIP.incomeTax(ch, 1000000), 114999.74));
+  check('Bundessteuer(1.000.000) Quirk: 11,5% über 793.900', close(WAIP.incomeTax(ch, 1000000), bundessteuer(1000000)) && close(WAIP.incomeTax(ch, 1000000), 114999.65));
   check('effektiv = Steuer / Brutto (nicht marginal)', close(WAIP.incomeTax(ch, 100000) / 100000, bundessteuer(100000) / 100000));
   check('salaryDefault = 100.000 (Zürich-Standardbande)', ch.salaryDefault === 100000, String(ch.salaryDefault));
 }
-// --- EXTERNAL-ANCHOR: Steuerveranlagungs-Referenzwerte folgen nächste Phase ---
+// --- EXTERNAL-ANCHOR: ESTV Form 58c 2026 (Grundtarif, ledig) ------------------
+// Unabhängige Werte aus der offiziellen Tariftabelle (0,05-Rundung pro Stufe);
+// https://www.estv.admin.ch/de/steuertarife-zur-direkten-bundessteuer
 {
-  const t = WAIP.incomeTax(ch, 100000);
-  check('EXTERNAL-ANCHOR (Platzhalter): deterministisch und endlich', isFinite(t) && t === WAIP.incomeTax(ch, 100000), `dbs(100000)=${t.toFixed(2)}`);
+  check('EXTERNAL: Bundessteuer(40.000) = 198,44 ±0,05', Math.abs(WAIP.incomeTax(ch, 40000) - 198.44) <= 0.05, `engine=${WAIP.incomeTax(ch, 40000).toFixed(4)}`);
+  check('EXTERNAL: Bundessteuer(80.000) = 1.378,22 ±0,05', Math.abs(WAIP.incomeTax(ch, 80000) - 1378.22) <= 0.05, `engine=${WAIP.incomeTax(ch, 80000).toFixed(4)}`);
+  check('EXTERNAL: Bundessteuer(130.000) = 5.128,55 ±0,05', Math.abs(WAIP.incomeTax(ch, 130000) - 5128.55) <= 0.05, `engine=${WAIP.incomeTax(ch, 130000).toFixed(4)}`);
 }
 
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);

@@ -102,14 +102,17 @@
     // Direkte Bundessteuer 2026, Tarif 58c (ledig) — nur Bund, ohne AHV/ALV
     // und ohne Kantone (ch-rates-2026.md): 0% bis 15.200; 0,77/0,88/2,64/
     // 2,97/5,94/6,60/8,80/11,00/13,20% in den Folgeschritten bis 793.900;
-    // darüber 11,5% (Quirk: niedriger als die letzte Stufe).
+    // darüber 11,5% (Quirk: niedriger als die letzte Stufe). Die offizielle
+    // Tariftabelle rundet jeden Stufenbeitrag auf 0,05 Franken AB (Form 58c):
+    // 33.200 -> 138,60; 43.500 -> 229,20; 58.000 -> 612,00; 76.200 -> 1.152,50.
     incomeTax(gross) {
       const I = Math.max(0, num(gross));
       const caps = [15200, 33200, 43500, 58000, 76200, 82100, 108900, 141500, 185100, 793900];
       const m = [0, 0.0077, 0.0088, 0.0264, 0.0297, 0.0594, 0.066, 0.088, 0.11, 0.132];
       let tax = 0;
       for (let i = 0; i < caps.length; i++) {
-        tax += Math.max(0, Math.min(I, caps[i]) - (i ? caps[i - 1] : 0)) * m[i];
+        const w = Math.max(0, Math.min(I, caps[i]) - (i ? caps[i - 1] : 0));
+        tax += Math.floor(w * m[i] * 20 + 1e-9) / 20;
       }
       if (I > caps[9]) tax += 0.115 * (I - caps[9]);
       return tax;
