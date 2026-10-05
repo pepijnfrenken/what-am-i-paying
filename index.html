@@ -6,21 +6,18 @@
 <title>Wat betaal ik eigenlijk?</title>
 <style>
 :root{
-  --bg:#D9E1E4; --panel:#F3F6F7; --paper:#FFFEF8; --ink:#1F252B; --muted:#5E6A72; --line:#C5CED3;
+  --bg:#E9EFF3; --panel:#F6F8FA; --paper:#FFFFFF;
+  --ink:#5A6874; --strong:#46535E; --muted:#8593A0;
+  --line:#D3DBE0; --rule:#B8C3C9; --track:#EAEFF2;
   --c-under:#2F7A57; --c-duty:#B5781A; --c-vat:#4F5FB8; --c-tax:#94365A; --focus:#4F5FB8;
   --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   box-sizing:border-box;
 }
-@media (prefers-color-scheme: dark){
-  :root{ --bg:#1B2329; --panel:#232D34; --paper:#F4F1E6; --ink:#1F252B; --muted:#9AA7AF; --line:#36424A;
-    --c-under:#3E9A6E; --c-duty:#D0922E; --c-vat:#6E7DD6; --c-tax:#B5517A; --focus:#8E9BEA; }
-  body{color:#E7ECEE}
-}
 *,*::before,*::after{box-sizing:inherit}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
 main{max-width:960px;margin:0 auto;padding:28px 18px 48px}
-h1{font-size:clamp(1.6rem,4.5vw,2.3rem);line-height:1.1;letter-spacing:-0.02em;margin:0 0 6px;font-weight:700}
+h1{font-size:clamp(1.6rem,4.5vw,2.3rem);line-height:1.1;letter-spacing:-0.02em;margin:0 0 6px;font-weight:700;color:var(--strong)}
 .lede{margin:0 0 24px;color:var(--muted);max-width:62ch}
 .grid{display:grid;gap:22px;grid-template-columns:1fr}
 @media (min-width:820px){.grid{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);align-items:start}}
@@ -29,15 +26,15 @@ h1{font-size:clamp(1.6rem,4.5vw,2.3rem);line-height:1.1;letter-spacing:-0.02em;m
 .field:last-child{margin-bottom:0}
 label{display:block;font-size:.85rem;font-weight:600;margin-bottom:5px}
 .hint{font-size:.78rem;color:var(--muted);margin-top:4px}
-select,input[type=number]{width:100%;font:inherit;font-size:1rem;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:#1F252B}
+select,input[type=number]{width:100%;font:inherit;font-size:1rem;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--strong)}
 input[type=number]{font-family:var(--mono)}
 select:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .check{display:flex;gap:8px;align-items:center;font-size:.9rem;font-weight:500}
 .check input{width:18px;height:18px;accent-color:var(--focus)}
-.group-title{font-size:.95rem;font-weight:700;margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
+.group-title{font-size:.95rem;font-weight:700;margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--line);color:var(--strong)}
 .prefix{position:relative}
-.prefix span{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-family:var(--mono);color:#5E6A72}
+.prefix span{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-family:var(--mono);color:var(--muted)}
 .prefix input{padding-left:26px}
 [hidden]{display:none !important}
 .receipt-wrap{display:flex;justify-content:center}
@@ -46,27 +43,27 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-
   -webkit-mask:radial-gradient(circle 6px at 50% 100%,transparent 98%,#000) 0 0/14px 100% repeat-x;
           mask:radial-gradient(circle 6px at 50% 100%,transparent 98%,#000) 0 0/14px 100% repeat-x}
 .r-head{text-align:center;margin-bottom:14px}
-.r-head strong{display:block;font-size:1rem;font-weight:600}
-.r-head small{color:#6A747B}
-.rule{border:0;border-top:1px dashed #9AA3A9;margin:12px 0}
+.r-head strong{display:block;font-size:1rem;font-weight:600;color:var(--strong)}
+.r-head small{color:var(--muted)}
+.rule{border:0;border-top:1px dashed var(--rule);margin:12px 0}
 .line{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
 .line .lbl{display:flex;gap:8px;align-items:baseline}
-.line.sub{padding-left:18px;color:#5E6A72;font-size:.82rem}
-.line.total{font-weight:600;font-size:1.02rem}
-.line.big{font-size:1.25rem;font-weight:600;padding:6px 0}
+.line.sub{padding-left:18px;color:var(--muted);font-size:.82rem}
+.line.total{font-weight:600;font-size:1.02rem;color:var(--strong)}
+.line.big{font-size:1.25rem;font-weight:600;padding:6px 0;color:var(--strong)}
 .sw{display:inline-block;width:9px;height:9px;border-radius:2px;flex:none;transform:translateY(-1px)}
 .neg{white-space:nowrap}
-.bar{display:flex;height:22px;border-radius:3px;overflow:hidden;margin:16px 0 8px;background:#E8ECEE}
+.bar{display:flex;height:22px;border-radius:3px;overflow:hidden;margin:16px 0 8px;background:var(--track)}
 .bar div{height:100%;transition:flex-basis .35s ease}
 @media (prefers-reduced-motion:reduce){.bar div{transition:none}}
-.legend{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:.78rem;color:#4A545B}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:.78rem;color:var(--muted)}
 .legend span{display:flex;gap:6px;align-items:center}
-.take{margin-top:14px;font-family:var(--sans);font-size:.95rem;line-height:1.4;color:#1F252B}
+.take{margin-top:14px;font-family:var(--sans);font-size:.95rem;line-height:1.4;color:var(--ink)}
 .take b{font-family:var(--mono)}
-.warn{background:#FCEBD8;color:#7A3E0C;font-family:var(--sans);font-size:.85rem;padding:8px 10px;border-radius:5px;margin-top:10px}
+.warn{background:#FDF0E0;color:#8A5A22;font-family:var(--sans);font-size:.85rem;padding:8px 10px;border-radius:5px;margin-top:10px}
 .heroes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 14px}
-.hero{border:1.5px solid #1F252B;border-radius:4px;padding:10px 10px 8px;text-align:center}
-.hero.real{background:#1F252B;color:#FFFEF8}
+.hero{border:1.5px solid var(--line);border-radius:4px;padding:10px 10px 8px;text-align:center}
+.hero.real{background:#E9F0EC;color:var(--strong)}
 .hero .k{font-family:var(--sans);font-size:.8rem;font-weight:600;display:block}
 .hero .v{font-size:1.6rem;font-weight:600;display:block;margin:2px 0}
 .hero .d{font-family:var(--sans);font-size:.72rem;opacity:.8;display:block;line-height:1.3}
