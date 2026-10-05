@@ -1,25 +1,60 @@
-/* countries/ch.js — Schweiz.
- * Tarife 2026 (Stand Okt. 2026); Quellen und Annahmen in
- * countries/ch-rates-2026.md (ESTV, BAZG, BAFU, BSV, kantonale Steuerämter).
+/* countries/ch.js — Switzerland (Schweiz).
+ * 2026 rates (as of Oct 2026). Every number below, with its source and
+ * assumptions, is in countries/ch-rates-2026.md (ESTV, BAZG, BAFU, BSV,
+ * cantonal tax offices).
  *
- * Mechanik (CH):
- *  - MWST wird über den Preis inkl. Bundesabgaben erhoben -> zuerst vom vollen Preis abgezogen.
- *  - Bier: Bundessteuer pauschal pro hl nach Stammwürze (°Plato):
- *    ≤ 10,0°P CHF 16,88; 10,1–14,0°P CHF 25,32; > 14,0°P CHF 33,76.
- *  - Alkoholsteuer: CHF 29 pro Liter reinen Alkohols.
- *  - Tabaksteuer: CHF 118,32 pro 1.000 + 25 % des Verkaufspreises.
- *  - Mineralölsteuer: Benzin 76,82 Rp./l, Diesel 79,57 Rp./l (inkl. NAF).
- *  - Wein und Strom: keine Bundessteuer (Hinweis über Preset-noDutyLabel).
+ * Duty mechanics (federal levies only):
+ *  - Beer: flat per hl by original wort (°Plato): ≤ 10.0 °P CHF 16.88;
+ *    10.1–14.0 °P CHF 25.32; > 14.0 °P CHF 33.76.
+ *  - Spirits: CHF 29 per litre of pure alcohol.
+ *  - Cigarettes: CHF 118.32 per 1,000 + 25 % of retail price.
+ *  - Mineral oil tax: petrol 76.82 Rp./l, diesel 79.57 Rp./l (incl. NAF).
+ *  - Wine and electricity: no federal levy (preset noDutyLabel).
  */
 (function (g) {
   const WAIP = g.WAIP;
   const num = WAIP.num;
 
+  const RATES = {
+    beer_per_hl: { light: 16.88, normal: 25.32, strong: 33.76 }, // ≤ 10 / ≤ 14 / > 14 °Plato
+    spirit_per_l_alc: 29,
+    cig: { spec_per_1000: 118.32, advalorem: 0.25 },
+    fuel: { petrol_per_l: 0.7682, diesel_per_l: 0.7957 }
+  };
+
+  // Direkte Bundessteuer 2026, tariff 58c (single). caps[i] is the upper edge
+  // of step i, rates[i] the marginal rate within it.
+  const FEDERAL_58C = {
+    caps: [15200, 33200, 43500, 58000, 76200, 82100, 108900, 141500, 185100, 793900],
+    rates: [0, 0.0077, 0.0088, 0.0264, 0.0297, 0.0594, 0.066, 0.088, 0.11, 0.132],
+    // Above the last cap the law sets a flat 11.5 % of the whole income. The
+    // step sum at the cap is within CHF 0.35 of 11.5 % of it, so continuing
+    // at a marginal 11.5 % matches the law to the same margin (the apparent
+    // drop from 13.2 % is the tariff's own quirk).
+    above: 0.115
+  };
+
+  // Federal tax on taxable income I. Like the official table (Form 58c),
+  // each step's slice is rounded DOWN to CHF 0.05: 33,200 -> 138.60;
+  // 43,500 -> 229.20; 58,000 -> 612.00; 76,200 -> 1,152.50. The 1e-9 keeps
+  // exact multiples of 0.05 from dropping a step through float noise.
+  function federalTax(I) {
+    const { caps, rates, above } = FEDERAL_58C;
+    let tax = 0;
+    for (let i = 0; i < caps.length; i++) {
+      const w = Math.max(0, Math.min(I, caps[i]) - (i ? caps[i - 1] : 0));
+      tax += Math.floor(w * rates[i] * 20 + 1e-9) / 20;
+    }
+    const top = caps[caps.length - 1];
+    if (I > top) tax += above * (I - top);
+    return tax;
+  }
+
   WAIP.registerCountry({
     code: 'ch',
     ratesStatus: 'ok',
     salaryDefault: 100000,
-    // Bundesvoranschlag 2026 (Mio. CHF; nur Bund), see where-goes-2026.md
+    // Bundesvoranschlag 2026 (CHF millions; federal only), see where-goes-2026.md
     budget: {
       social: 31823, population: 9127100,
       cats: {
@@ -49,8 +84,8 @@
       hotel:     { name: 'Hotel\u00fcbernachtung', nameEn: 'Hotel night', price: 120.00, vat: 0.038, kind: 'none' },
       custom:    { name: 'Anderes', nameEn: 'Other', price: 10.00, vat: 0.081, kind: 'custom', panel: { cfix: 0, cpct: 0 } }
     },
-    // Geschätzte Grenzsteuersätze (Bund + AHV/IV/EO + ALV + Kanton/Gemeinde),
-    // siehe ch-rates-2026.md; ohne BVG, NBU, Kirchen- und Vermögenssteuer.
+    // Estimated marginal rates (federal + AHV/IV/EO + ALV + canton/commune),
+    // see ch-rates-2026.md; excludes BVG, NBU, church and wealth tax.
     taxBands: [
       { label: 'Bund + Sozialabgaben, mittleres Einkommen \u2248 13.0 %', labelEn: 'Federal + social contributions, middle income \u2248 13.0%', rate: 0.13 },
       { label: 'Bund + Sozialabgaben, Spitzenverdiener \u2248 16.8 %', labelEn: 'Federal + social contributions, top earner \u2248 16.8%', rate: 0.168 },
@@ -69,25 +104,27 @@
       const p = state.panel, kind = state.kind, price = state.price;
       const en = state.lang === 'en';
       const out = [];
+      const R = RATES;
       if (kind === 'alcohol') {
         const ml = num(p.ml), hl = ml / 100000;
         if (p.cat === 'beer') {
+          // flat CHF per hl, band picked by original wort (°Plato)
           const plato = num(p.plato);
-          const rate = plato <= 10 ? 16.88 : plato <= 14 ? 25.32 : 33.76;
+          const rate = plato <= 10 ? R.beer_per_hl.light : plato <= 14 ? R.beer_per_hl.normal : R.beer_per_hl.strong;
           out.push({ label: en ? `Beer tax (${plato.toFixed(1)} \u00b0Plato, CHF ${rate.toFixed(2)}/hl)` : `Biersteuer (${plato.toFixed(1)} \u00b0Plato, CHF ${rate.toFixed(2)}/hl)`, v: hl * rate });
         } else if (p.cat === 'spirit') {
-          const lpa = ml / 1000 * num(p.abv) / 100;
-          out.push({ label: en ? `Alcohol tax (${lpa.toFixed(2)} L pure alcohol)` : `Alkoholsteuer (${lpa.toFixed(2)} L reiner Alkohol)`, v: lpa * 29 });
+          const lpa = ml / 1000 * num(p.abv) / 100; // litres of pure alcohol
+          out.push({ label: en ? `Alcohol tax (${lpa.toFixed(2)} L pure alcohol)` : `Alkoholsteuer (${lpa.toFixed(2)} L reiner Alkohol)`, v: lpa * R.spirit_per_l_alc });
         }
-        // Wein: keine Bundessteuer (Hinweis über Preset-noDutyLabel)
+        // wine: no federal duty (the preset's noDutyLabel says so)
       } else if (kind === 'cigs') {
         const n = num(p.sticks);
         if (n > 0) {
-          out.push({ label: en ? 'Tobacco tax (fixed)' : 'Tabaksteuer (fest)', v: 118.32 * n / 1000 });
-          out.push({ label: en ? 'Tobacco tax 25% of price' : 'Tabaksteuer 25 % des Preises', v: 0.25 * price });
+          out.push({ label: en ? 'Tobacco tax (fixed)' : 'Tabaksteuer (fest)', v: R.cig.spec_per_1000 * n / 1000 });
+          out.push({ label: en ? 'Tobacco tax 25% of price' : 'Tabaksteuer 25 % des Preises', v: R.cig.advalorem * price });
         }
       } else if (kind === 'fuel') {
-        const rate = p.fueltype === 'diesel' ? 0.7957 : 0.7682;
+        const rate = p.fueltype === 'diesel' ? R.fuel.diesel_per_l : R.fuel.petrol_per_l;
         out.push({ label: en ? `Mineral oil tax ${p.fueltype === 'diesel' ? 'diesel' : 'petrol'}` : `Mineral\u00f6lsteuer ${p.fueltype === 'diesel' ? 'Diesel' : 'Benzin'}`, v: num(p.litres) * rate });
       } else if (kind === 'custom') {
         const f = num(p.cfix), pc = num(p.cpct) / 100;
@@ -96,23 +133,9 @@
       }
       return out;
     },
-    // Direkte Bundessteuer 2026, Tarif 58c (ledig) — nur Bund, ohne AHV/ALV
-    // und ohne Kantone (ch-rates-2026.md): 0% bis 15.200; 0,77/0,88/2,64/
-    // 2,97/5,94/6,60/8,80/11,00/13,20% in den Folgeschritten bis 793.900;
-    // darüber 11,5% (Quirk: niedriger als die letzte Stufe). Die offizielle
-    // Tariftabelle rundet jeden Stufenbeitrag auf 0,05 Franken AB (Form 58c):
-    // 33.200 -> 138,60; 43.500 -> 229,20; 58.000 -> 612,00; 76.200 -> 1.152,50.
+    // Federal direct tax only (no AHV/ALV, no cantonal or communal tax).
     incomeTax(gross) {
-      const I = Math.max(0, num(gross));
-      const caps = [15200, 33200, 43500, 58000, 76200, 82100, 108900, 141500, 185100, 793900];
-      const m = [0, 0.0077, 0.0088, 0.0264, 0.0297, 0.0594, 0.066, 0.088, 0.11, 0.132];
-      let tax = 0;
-      for (let i = 0; i < caps.length; i++) {
-        const w = Math.max(0, Math.min(I, caps[i]) - (i ? caps[i - 1] : 0));
-        tax += Math.floor(w * m[i] * 20 + 1e-9) / 20;
-      }
-      if (I > caps[9]) tax += 0.115 * (I - caps[9]);
-      return tax;
+      return federalTax(Math.max(0, num(gross)));
     },
     copy: {
       langLabel: 'Sprache',
@@ -177,7 +200,7 @@
       vatLine: vr => `Minus MWST (${(vr * 100).toFixed(1).replace(/\.0$/, '')}%)`,
       taxLine: m => `Plus Einkommens- und Sozialabgaben (${WAIP.pctRate(m)}%)`,
       mult: r => `Du zahlst wirklich <b>${r.toFixed(2)}\u00d7</b> das, was es kosten k\u00f6nnte`,
-      take: res => `Von den <b>${WAIP.formatMoney({ currency: { symbol: 'CHF ' } }, res.gross)}</b>, die du verdienst, um das zu kaufen, gehen <b>${WAIP.formatMoney({ currency: { symbol: 'CHF ' } }, res.govt)}</b> (${(res.govt / res.gross * 100).toFixed(0)} %) an den Staat: <b>${WAIP.formatMoney({ currency: { symbol: 'CHF ' } }, res.itax)}</b> Einkommenssteuer, <b>${WAIP.formatMoney({ currency: { symbol: 'CHF ' } }, res.vat)}</b> MWST und <b>${WAIP.formatMoney({ currency: { symbol: 'CHF ' } }, res.duty)}</b> Bundesabgaben.`,
+      take: (res, f) => `Von den <b>${f(res.gross)}</b>, die du verdienst, um das zu kaufen, gehen <b>${f(res.govt)}</b> (${(res.govt / res.gross * 100).toFixed(0)} %) an den Staat: <b>${f(res.itax)}</b> Einkommenssteuer, <b>${f(res.vat)}</b> MWST und <b>${f(res.duty)}</b> Bundesabgaben.`,
       warnNeg: 'Abgaben und MWST \u00fcbersteigen zusammen den Preis. Vielleicht ist der Preis zu tief f\u00fcr dieses Produkt, oder es wird mit Verlust verkauft.',
       notesTitle: 'Verwendete Tarife (CH, 2026)',
       notesCaveatsTitle: 'Was diese Rechnung nicht zeigt',
@@ -201,7 +224,6 @@
         dutyLine: 'Minus Bundesabgaben',
         underLine: 'Was es kosten k\u00f6nnte',
         underSub: 'Preis minus MWST und Bundesabgaben',
-        taxPrefix: 'Einkommens- und Sozialabgaben',
         grossLine: 'Was du wirklich zahlst',
         legendUnder: 'Verk\u00e4ufer', legendDuty: 'Bundesabgaben', legendVat: 'MWST', legendTax: 'Einkommenssteuer'
       }
@@ -269,7 +291,7 @@
       vatLine: vr => `Minus VAT (${(vr * 100).toFixed(1).replace(/\.0$/, '')}%)`,
       taxLine: m => `Plus income and social contributions (${WAIP.pctRate(m)}%)`,
       mult: r => `You really pay <b>${r.toFixed(2)}\u00d7</b> what it could cost`,
-      take: res => `Of the <b>${WAIP.formatMoney({ currency: { symbol: 'CHF ' } }, res.gross)}</b> you earn to buy this, <b>${WAIP.formatMoney({ currency: { symbol: 'CHF ' } }, res.govt)}</b> (${(res.govt / res.gross * 100).toFixed(0)}%) goes to the state: <b>${WAIP.formatMoney({ currency: { symbol: 'CHF ' } }, res.itax)}</b> income tax, <b>${WAIP.formatMoney({ currency: { symbol: 'CHF ' } }, res.vat)}</b> VAT and <b>${WAIP.formatMoney({ currency: { symbol: 'CHF ' } }, res.duty)}</b> federal duties.`,
+      take: (res, f) => `Of the <b>${f(res.gross)}</b> you earn to buy this, <b>${f(res.govt)}</b> (${(res.govt / res.gross * 100).toFixed(0)}%) goes to the state: <b>${f(res.itax)}</b> income tax, <b>${f(res.vat)}</b> VAT and <b>${f(res.duty)}</b> federal duties.`,
       warnNeg: 'Duties and VAT together exceed the price. The price may be too low for this item, or it is sold at a loss.',
       notesTitle: 'Rates used (CH, 2026)',
       notesCaveatsTitle: 'What this does not show',
@@ -293,7 +315,6 @@
         dutyLine: 'Minus federal duties',
         underLine: 'What it could cost',
         underSub: 'Price minus VAT and federal duties',
-        taxPrefix: 'Income and social contributions',
         grossLine: 'What you really pay',
         legendUnder: 'Seller', legendDuty: 'Federal duties', legendVat: 'VAT', legendTax: 'Income tax'
       }

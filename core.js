@@ -71,7 +71,16 @@
   };
 
   // ---------------------------------------------------------------- engine
-  // state = { price, vatRate, marginal, kind, panel: { ...raw input values } }
+  // state = { price, vatRate, marginal, kind, preset, lang, panel: { ...raw input values } }
+  //
+  // The ticket price is split from the outside in:
+  //   vat   = price x vr / (1 + vr)   VAT is charged on the duty-inclusive
+  //                                   price, so it comes off the full price.
+  //   duty  = sum of the country's duty lines (computeDuties).
+  //   under = price - vat - duty      "what it could cost": the seller's share.
+  // The wage wedge then grosses the price up at the marginal rate m:
+  //   gross = price / (1 - m)         wage you must earn to keep `price`
+  //   itax  = gross - price           income tax + contributions on that wage
   WAIP.compute = function (cfg, state) {
     const price = Math.max(0, WAIP.num(state.price));
     const vr = WAIP.num(state.vatRate);
@@ -222,7 +231,7 @@
     $('h-real-d').textContent = R.hRealD;
     $('h-could-d').textContent = R.hCouldD;
     $('mult').innerHTML = res.under > 0 ? C.mult(res.gross / res.under) : '';
-    $('take').innerHTML = res.gross > 0 ? C.take(res) : '';
+    $('take').innerHTML = res.gross > 0 ? C.take(res, f) : '';
     const g2 = res.gross || 1;
     const parts = { under: Math.max(0, res.under), duty: res.duty, vat: res.vat, tax: res.itax };
     for (const [n, v] of Object.entries(parts)) {
@@ -298,6 +307,8 @@
       $('price-label').textContent = C.priceLabel;
       $('price-hint').textContent = C.priceHint;
       $('price-prefix').textContent = cfg.currency.symbol;
+      // pad the price input past the symbol ('CHF ' is four characters wide)
+      $('price').style.setProperty('--prefix-ch', String(cfg.currency.symbol.length));
       $('vat-label').textContent = C.vatLabel;
       $('panels-title').textContent = C.dutyTitle;
       $('tax-title').textContent = C.taxTitle;
@@ -323,8 +334,10 @@
     function buildLangOptions() {
       langSel.innerHTML = '';
       $('lang-label').textContent = labelCopy(cfg).langLabel || 'Language';
-      if (!cfg.copyEn) { langSel.hidden = true; return; }
-      langSel.hidden = false;
+      const hasEn = !!cfg.copyEn;
+      langSel.hidden = !hasEn;
+      $('lang-label').hidden = !hasEn;
+      if (!hasEn) return;
       for (const [v, t] of [['native', cfg.langNative || 'Native'], ['en', 'English']]) {
         const o = document.createElement('option'); o.value = v; o.textContent = t; langSel.appendChild(o);
       }
@@ -465,18 +478,33 @@
       }
     }
     let wgActive = false;
+    // WAI-ARIA tabs: the active tab is the only one in the tab order;
+    // arrow keys, Home and End move between tabs.
+    const tabs = [$('tab-receipt'), $('tab-where')];
     function switchTab(which) {
       wgActive = which === 'where';
       $('tab-receipt').classList.toggle('active', !wgActive);
       $('tab-where').classList.toggle('active', wgActive);
       $('tab-receipt').setAttribute('aria-selected', String(!wgActive));
       $('tab-where').setAttribute('aria-selected', String(wgActive));
+      $('tab-receipt').tabIndex = wgActive ? -1 : 0;
+      $('tab-where').tabIndex = wgActive ? 0 : -1;
       $('view-receipt').hidden = wgActive;
       $('view-where').hidden = !wgActive;
       if (wgActive) renderWhere();
     }
     $('tab-receipt').addEventListener('click', () => switchTab('receipt'));
     $('tab-where').addEventListener('click', () => switchTab('where'));
+    $('tab-receipt').parentElement.addEventListener('keydown', e => {
+      const i = tabs.indexOf(document.activeElement);
+      if (i < 0) return;
+      const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+      if (next == null) return;
+      e.preventDefault();
+      const t = tabs[(next + tabs.length) % tabs.length];
+      t.focus();
+      t.click();
+    });
     $('wg-income').addEventListener('input', renderWhere);
     $('wg-tax').addEventListener('input', renderWhere);
     $('wg-mode').addEventListener('change', () => {

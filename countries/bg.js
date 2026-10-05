@@ -1,27 +1,34 @@
-/* countries/bg.js — България.
- * Тарифи 2026; източници и цени в countries/bg-rates-2026.md и
- * countries/bg-prices-2026.md (НАП, ЗАДС, държавен бюджет 2026, окт. 2026).
- * От 1.1.2026 България е в еврозоната — фиксиран курс 1.95583 BGN = 1 EUR;
- * всички суми по-долу са в EUR.
+/* countries/bg.js — Bulgaria (България).
+ * 2026 rates. Every number below, with its source, is in
+ * countries/bg-rates-2026.md; prices in countries/bg-prices-2026.md (НАП,
+ * ЗАДС, State Budget 2026, Oct 2026). Bulgaria uses the euro since
+ * 1-1-2026 (fixed rate 1.95583 BGN = 1 EUR); every amount here is in EUR.
  *
- * Механика (BG):
- *  - ДДС се начислява върху цената с акцизи -> първо се вади от пълната цена.
- *  - Бира: € 0,77 на hl на градус Плато (hl × °P × 0,77).
- *  - Вино: без акциз (noDutyLabel на пресета-вино).
- *  - Ракия/спиртни: € 562,42 на hl чист алкохол.
- *  - Цигари: € 77 на 1 000 + 21 % от цената; минимум € 120 на 1 000 (от 1.8.2026).
- *  - Горива: бензин € 0,36302/L; дизел € 0,33029/L.
- *  - Ток за бита: без акциз (noDutyLabel).
+ * Duty mechanics:
+ *  - Beer: € 0.77 per hl per degree Plato (hl x °P x 0.77).
+ *  - Wine: no excise (wine preset noDutyLabel).
+ *  - Rakia/spirits: € 562.42 per hl of pure alcohol.
+ *  - Cigarettes: € 77 per 1,000 + 21 % of retail price; minimum € 120 per
+ *    1,000 (from 1-8-2026).
+ *  - Fuel: petrol € 0.36302/L; diesel € 0.33029/L.
+ *  - Household electricity: no excise (noDutyLabel).
  */
 (function (g) {
   const WAIP = g.WAIP;
   const num = WAIP.num;
 
+  const RATES = {
+    beer_per_hl_plato: 0.77,
+    spirit_per_hl_alc: 562.42,
+    cig: { spec_per_1000: 77, advalorem: 0.21, min_per_1000: 120 },
+    fuel: { petrol_per_l: 0.36302, diesel_per_l: 0.33029 }
+  };
+
   WAIP.registerCountry({
     code: 'bg',
     ratesStatus: 'ok',
     salaryDefault: 27600,
-    // КФП 2026 (млн. €), see where-goes-2026.md
+    // КФП 2026 consolidated budget (EUR millions), see where-goes-2026.md
     budget: {
       social: 19240.7, population: 6423207,
       cats: {
@@ -64,20 +71,22 @@
       const p = state.panel, kind = state.kind, price = state.price;
       const en = state.lang === 'en';
       const out = [];
+      const R = RATES;
       if (kind === 'alcohol') {
         const ml = num(p.ml), hl = ml / 100000;
         if (p.cat === 'beer') {
           const plato = num(p.plato);
-          out.push({ label: en ? `Beer excise (${plato.toFixed(1)}°P)` : `Акциз бира (${plato.toFixed(1).replace('.', ',')}°P)`, v: hl * plato * 0.77 });
+          out.push({ label: en ? `Beer excise (${plato.toFixed(1)}°P)` : `Акциз бира (${plato.toFixed(1).replace('.', ',')}°P)`, v: hl * plato * R.beer_per_hl_plato });
         } else if (p.cat === 'spirit') {
-          const hlAlc = ml / 1000 * num(p.abv) / 100 / 100; // hl чист алкохол
-          out.push({ label: en ? 'Excise rakia/spirits' : 'Акциз ракия/спиртни напитки', v: hlAlc * 562.42 });
+          const hlAlc = ml / 1000 * num(p.abv) / 100 / 100; // hl of pure alcohol
+          out.push({ label: en ? 'Excise rakia/spirits' : 'Акциз ракия/спиртни напитки', v: hlAlc * R.spirit_per_hl_alc });
         }
-        // вино: без акциз (noDutyLabel)
+        // wine: no excise (the preset's noDutyLabel says so)
       } else if (kind === 'cigs') {
         const n = num(p.sticks);
         if (n > 0) {
-          const spec = 77 * n / 1000, adv = 0.21 * price, min = 120 * n / 1000;
+          // specific + ad valorem, unless the minimum excise is higher
+          const spec = R.cig.spec_per_1000 * n / 1000, adv = R.cig.advalorem * price, min = R.cig.min_per_1000 * n / 1000;
           if (spec + adv >= min) {
             out.push({ label: en ? 'Cigarette excise (fixed)' : 'Акциз цигари (фиксиран)', v: spec });
             out.push({ label: en ? 'Cigarette excise 21% of price' : 'Акциз цигари 21 % от цената', v: adv });
@@ -86,7 +95,7 @@
           }
         }
       } else if (kind === 'fuel') {
-        const rate = p.fueltype === 'diesel' ? 0.33029 : 0.36302;
+        const rate = p.fueltype === 'diesel' ? R.fuel.diesel_per_l : R.fuel.petrol_per_l;
         out.push({ label: en ? `Excise ${p.fueltype === 'diesel' ? 'diesel' : 'petrol'}` : `Акциз ${p.fueltype === 'diesel' ? 'дизел' : 'бензин'}`, v: num(p.litres) * rate });
       } else if (kind === 'custom') {
         const f = num(p.cfix), pc = num(p.cpct) / 100;
@@ -95,10 +104,10 @@
       }
       return out;
     },
-    // ДОД 2026 = 10% × (bruto − werknemersbijdragen). Bijdragen 13,78% van
-    // het bruto, afgetopt op het verzekeringsplafond: € 2.111,64/maand
-    // (jan–jul 2026) en € 2.300,00/maand (aug–dec 2026) — pro-rata
-    // jaarcaplimit 26.281,48 (zie bg-rates-2026.md).
+    // ДОД 2026: flat 10 % on gross minus the employee's social contributions
+    // (bg-rates-2026.md). Contributions are 13.78 % of gross, but only up to
+    // the insurance ceiling: € 2,111.64/month for Jan–Jul and € 2,300.00/month
+    // for Aug–Dec 2026, i.e. a pro-rata annual cap of € 26,281.48.
     incomeTax(gross) {
       const I = Math.max(0, num(gross));
       const cap = 7 * 2111.64 + 5 * 2300;
@@ -166,7 +175,7 @@
       vatLine: vr => `Минус ДДС (${(vr * 100).toFixed(0)}%)`,
       taxLine: m => `Плюс данък и осигуровки (${WAIP.pctRate(m).replace('.', ',')}%)`,
       mult: r => `Наистина плащаш <b>${r.toFixed(2).replace('.', ',')}\u00d7</b> от това, което би могло да струва`,
-      take: res => `От <b>${WAIP.formatMoney({ currency: { symbol: '€', decimalComma: true } }, res.gross)}</b>, които изкарваш, за да го купиш, <b>${WAIP.formatMoney({ currency: { symbol: '€', decimalComma: true } }, res.govt)}</b> (${(res.govt / res.gross * 100).toFixed(0)}%) отиват за данъци: <b>${WAIP.formatMoney({ currency: { symbol: '€', decimalComma: true } }, res.itax)}</b> данък върху дохода, <b>${WAIP.formatMoney({ currency: { symbol: '€', decimalComma: true } }, res.vat)}</b> ДДС и <b>${WAIP.formatMoney({ currency: { symbol: '€', decimalComma: true } }, res.duty)}</b> акцизи.`,
+      take: (res, f) => `От <b>${f(res.gross)}</b>, които изкарваш, за да го купиш, <b>${f(res.govt)}</b> (${(res.govt / res.gross * 100).toFixed(0)}%) отиват за данъци: <b>${f(res.itax)}</b> данък върху дохода, <b>${f(res.vat)}</b> ДДС и <b>${f(res.duty)}</b> акцизи.`,
       warnNeg: 'Акцизите и ДДС заедно надхвърлят цената. Може би цената е твърде ниска за този продукт или магазинът продава на загуба.',
       notesTitle: 'Използвани ставки (България, 2026)',
       notesCaveatsTitle: 'Какво не показва това',
@@ -190,7 +199,6 @@
         dutyLine: 'Минус акцизи',
         underLine: 'Какво би могло да струва',
         underSub: 'Цена минус ДДС и акцизи',
-        taxPrefix: 'Данък върху дохода и осигуровки',
         grossLine: 'Какво наистина плащаш',
         legendUnder: 'Продавач', legendDuty: 'Акцизи', legendVat: 'ДДС', legendTax: 'Данъци'
       }
@@ -257,7 +265,7 @@
       vatLine: vr => `Minus VAT (${(vr * 100).toFixed(0)}%)`,
       taxLine: m => `Plus income tax and contributions (${WAIP.pctRate(m).replace('.', ',')}%)`,
       mult: r => `You really pay <b>${r.toFixed(2).replace('.', ',')}\u00d7</b> what it could cost`,
-      take: res => `Of the <b>${WAIP.formatMoney({ currency: { symbol: '€', decimalComma: true } }, res.gross)}</b> you earn to buy this, <b>${WAIP.formatMoney({ currency: { symbol: '€', decimalComma: true } }, res.govt)}</b> (${(res.govt / res.gross * 100).toFixed(0)}%) goes in tax: <b>${WAIP.formatMoney({ currency: { symbol: '€', decimalComma: true } }, res.itax)}</b> income tax, <b>${WAIP.formatMoney({ currency: { symbol: '€', decimalComma: true } }, res.vat)}</b> VAT and <b>${WAIP.formatMoney({ currency: { symbol: '€', decimalComma: true } }, res.duty)}</b> excise duties.`,
+      take: (res, f) => `Of the <b>${f(res.gross)}</b> you earn to buy this, <b>${f(res.govt)}</b> (${(res.govt / res.gross * 100).toFixed(0)}%) goes in tax: <b>${f(res.itax)}</b> income tax, <b>${f(res.vat)}</b> VAT and <b>${f(res.duty)}</b> excise duties.`,
       warnNeg: 'Excise duties and VAT together exceed the price. The price may be too low for this product, or the shop is selling at a loss.',
       notesTitle: 'Rates used (Bulgaria, 2026)',
       notesCaveatsTitle: 'What this does not show',
@@ -281,7 +289,6 @@
         dutyLine: 'Minus excise duties',
         underLine: 'What it could cost',
         underSub: 'Price minus VAT and excise duties',
-        taxPrefix: 'Income tax and contributions',
         grossLine: 'What you really pay',
         legendUnder: 'Seller', legendDuty: 'Excise', legendVat: 'VAT', legendTax: 'Tax'
       }

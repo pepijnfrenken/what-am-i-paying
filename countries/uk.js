@@ -1,30 +1,39 @@
 /* countries/uk.js — United Kingdom.
- * Rates mirrored from the public "What am I actually paying?" page (UK, Oct 2026):
- *   VAT 20%; fuel duty 52.95p/L; alcohol duty (from 1 Feb 2026, per L pure alcohol):
- *   beer 3.5–8.4% £22.58; wine/spirits 3.5–8.4% £26.61; 8.5–22% £30.62; >22% £33.99;
- *   draught 3.5–8.4% £19.45; under 3.5% £9.96 (draught £8.58); cigarettes £394.09/1,000
- *   + 16.5% of retail, min £518.75/1,000; vaping £2.20/10ml; soft drinks levy 27.8p/L
- *   (8g+ sugar), 20.8p/L (5–8g).
+ * Port of the original "What am I actually paying?" page (UK, October 2026);
+ * test/uk_check.mjs proves it reproduces that page's formulas exactly.
+ * Every number below, with its source, is in countries/uk-rates-2026.md
+ * (duties) and countries/uk-tax-2026.md (income tax).
+ *
+ * Duty mechanics:
+ *  - Alcohol: per litre of pure alcohol, the rate picked by strength band,
+ *    drink type (beer vs other below 8.5 %) and draught relief (below 8.5 %).
+ *  - Cigarettes: £ 394.09 per 1,000 + 16.5 % of retail price, or the
+ *    minimum excise £ 518.75 per 1,000 when that is higher.
+ *  - Fuel 52.95p/L; vaping £ 2.20 per 10 ml; soft drinks levy by sugar band.
  */
 (function (g) {
   const WAIP = g.WAIP;
   const num = WAIP.num;
 
-  const alcRate = (abv, cat, draught) => {
-    if (abv <= 1.2) return 0;
-    if (abv < 3.5) return draught ? 8.58 : 9.96;
-    if (abv < 8.5) return draught ? 19.45 : (cat === 'beer' ? 22.58 : 26.61);
-    if (abv <= 22) return 30.62;
-    return 33.99;
+  const RATES = {
+    // £ per litre of pure alcohol, from 1 Feb 2026
+    alcohol: { low: 9.96, lowDraught: 8.58, beer: 22.58, other: 26.61, midDraught: 19.45, strong: 30.62, spirits: 33.99 },
+    drinks: { high: 0.278, std: 0.208, none: 0 }, // soft drinks levy, £ per litre
+    cig: { spec_per_1000: 394.09, advalorem: 0.165, min_per_1000: 518.75 },
+    fuel_per_l: 0.5295,
+    vape_per_ml: 0.22
   };
 
-  const RATES = {
-    sdil: { high: 0.278, std: 0.208, none: 0 },
-    cig_spec_per_1000: 394.09,
-    cig_advalorem: 0.165,
-    cig_min_per_1000: 518.75,
-    fuel_per_litre: 0.5295,
-    vape_per_ml: 0.22
+  // Alcohol duty rate (£ per litre of pure alcohol) for a strength band.
+  // Bands: ≤ 1.2 % exempt | < 3.5 % | < 8.5 % (beer vs other) | ≤ 22 % | above.
+  // `draught` must already be false at 8.5 % and above.
+  const alcRate = (abv, cat, draught) => {
+    const A = RATES.alcohol;
+    if (abv <= 1.2) return 0;
+    if (abv < 3.5) return draught ? A.lowDraught : A.low;
+    if (abv < 8.5) return draught ? A.midDraught : (cat === 'beer' ? A.beer : A.other);
+    if (abv <= 22) return A.strong;
+    return A.spirits;
   };
 
   WAIP.registerCountry({
@@ -61,6 +70,8 @@
         hint: '\u00a3 73.70/week for a 2.36-person household (ONS FYE 2025: \u00a3 67.30 food + \u00a3 6.40 drinks). Most food is zero-rated; soft drinks and sweets are 20 % and carry the Soft Drinks Industry Levy (not included at 0 %).' },
       custom:  { name: 'Something else', price: 10.00, vat: 0.20, kind: 'custom', panel: { cfix: 0, cpct: 0 } }
     },
+    // Marginal income tax + employee NI, England/Wales/NI 2026/27
+    // (uk-rates-2026.md). Default: basic rate.
     taxBands: [
       { label: 'Under \u00a312,570: 0%', rate: 0 },
       { label: 'Basic rate: 20% tax + 8% NI = 28%', rate: 0.28, selected: true },
@@ -76,27 +87,30 @@
     computeDuties(state, cfg) {
       const p = state.panel, kind = state.kind, price = state.price;
       const out = [];
+      const R = RATES;
       if (kind === 'alcohol') {
         const abv = num(p.abv), ml = num(p.ml);
         const draught = !!p.draughtOn;
         const rate = alcRate(abv, p.cat, draught && abv < 8.5);
-        const lpa = ml / 1000 * abv / 100;
+        const lpa = ml / 1000 * abv / 100; // litres of pure alcohol
         if (rate) out.push({ label: `Alcohol duty (${lpa.toFixed(3)} L pure alcohol \u00d7 \u00a3${rate.toFixed(2)})`, v: lpa * rate });
       } else if (kind === 'drinks') {
-        const r = RATES.sdil[p.dband] || 0;
+        const r = R.drinks[p.dband] || 0;
         if (r) out.push({ label: `Soft drinks levy (${(r * 100).toFixed(1)}p per litre)`, v: num(p.dml) / 1000 * r });
       } else if (kind === 'cigs') {
         const n = num(p.sticks);
-        const spec = RATES.cig_spec_per_1000 * n / 1000, adv = RATES.cig_advalorem * price, min = RATES.cig_min_per_1000 * n / 1000;
-        if (n <= 0) return out;
-        if (spec + adv >= min) {
-          out.push({ label: 'Tobacco duty, fixed per stick', v: spec });
-          out.push({ label: 'Tobacco duty, 16.5% of price', v: adv });
-        } else out.push({ label: 'Tobacco duty (minimum excise applies)', v: min });
+        if (n > 0) {
+          // specific + ad valorem, unless the minimum excise is higher
+          const spec = R.cig.spec_per_1000 * n / 1000, adv = R.cig.advalorem * price, min = R.cig.min_per_1000 * n / 1000;
+          if (spec + adv >= min) {
+            out.push({ label: 'Tobacco duty, fixed per stick', v: spec });
+            out.push({ label: 'Tobacco duty, 16.5% of price', v: adv });
+          } else out.push({ label: 'Tobacco duty (minimum excise applies)', v: min });
+        }
       } else if (kind === 'fuel') {
-        out.push({ label: 'Fuel duty (52.95p per litre)', v: num(p.litres) * RATES.fuel_per_litre });
+        out.push({ label: 'Fuel duty (52.95p per litre)', v: num(p.litres) * R.fuel_per_l });
       } else if (kind === 'vape') {
-        out.push({ label: 'Vaping duty (\u00a32.20 per 10ml)', v: num(p.vml) * RATES.vape_per_ml });
+        out.push({ label: 'Vaping duty (\u00a32.20 per 10ml)', v: num(p.vml) * R.vape_per_ml });
       } else if (kind === 'custom') {
         const f = num(p.cfix), pc = num(p.cpct) / 100;
         if (f) out.push({ label: 'Fixed duty', v: f });
@@ -180,7 +194,7 @@
       vatLine: vr => `Less VAT (${(vr * 100).toFixed(0)}%)`,
       taxLine: m => `Plus income tax and NI (${WAIP.pctRate(m)}%)`,
       mult: r => `You really pay <b>${r.toFixed(2)}\u00d7</b> what it could cost`,
-      take: res => `Of the <b>${WAIP.formatMoney({ currency: { symbol: '\u00a3' } }, res.gross)}</b> you earn to buy this, <b>${WAIP.formatMoney({ currency: { symbol: '\u00a3' } }, res.govt)}</b> (${(res.govt / res.gross * 100).toFixed(0)}%) goes in tax: <b>${WAIP.formatMoney({ currency: { symbol: '\u00a3' } }, res.itax)}</b> income tax and NI, <b>${WAIP.formatMoney({ currency: { symbol: '\u00a3' } }, res.vat)}</b> VAT and <b>${WAIP.formatMoney({ currency: { symbol: '\u00a3' } }, res.duty)}</b> duty.`,
+      take: (res, f) => `Of the <b>${f(res.gross)}</b> you earn to buy this, <b>${f(res.govt)}</b> (${(res.govt / res.gross * 100).toFixed(0)}%) goes in tax: <b>${f(res.itax)}</b> income tax and NI, <b>${f(res.vat)}</b> VAT and <b>${f(res.duty)}</b> duty.`,
       warnNeg: 'Duty and VAT come to more than this price. The price may be too low for this item, or the shop is selling at a loss.',
       notesTitle: 'Rates used (UK, October 2026)',
       notesCaveatsTitle: 'What this doesn\u2019t show',
@@ -204,7 +218,6 @@
         dutyLine: 'Less duties and levies',
         underLine: 'What it could cost',
         underSub: 'Ticket price less VAT and duties',
-        taxPrefix: 'Income tax and NI',
         grossLine: 'What you really pay',
         legendUnder: 'Seller', legendDuty: 'Duty', legendVat: 'VAT', legendTax: 'Income tax/NI'
       }

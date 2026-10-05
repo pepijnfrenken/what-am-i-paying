@@ -1,26 +1,27 @@
-/* countries/nl.js — Nederland.
- * Tarieven 2026 (in werking 1-1-2026); bronnen en afrondingsafspraken
- * gedocumenteerd in countries/nl-rates-2026.md (Belastingdienst /
- * Rijksoverheid / Douane Tarievenlijst / wetten.overheid.nl).
+/* countries/nl.js — Netherlands (Nederland).
+ * 2026 rates (in force 1-1-2026). Every number below, with its source and
+ * rounding convention, is in countries/nl-rates-2026.md (Belastingdienst,
+ * Rijksoverheid, Douane Tarievenlijst, wetten.overheid.nl).
  *
- * Mechanica (NL):
- *  - Btw wordt over de prijs inclusief accijns geheven -> eerst van de volle prijs af.
- *  - Bier: sinds 1-1-2024 is de basis %vol (géén Plato-conversie):
- *    hl × %vol × € 8,12, %vol naar beneden afgerond op 1 decimaal;
- *    minimum € 26,13/hl (bindt beneden ≈ 3,2% vol).
- *  - Wijn: alleen %vol kiest het tarief (≤ 8,5% € 47,95/hl; > 8,5% € 95,69/hl).
- *  - Sterke drank: € 18,27 per liter pure alcohol (= per hl per %vol).
- *  - Tabak: € 362,12 per 1000 sigaretten + 5% van de verkoopprijs
- *    (minimum totaal € 390,42 per 1000).
- *  - Brandstof: accijns per liter (benzine/diesel; tijdelijke accijnskorting
- *    2026 inbegrepen) + voorraadheffing € 0,008/L.
- *  - Energie: energiebelasting per kWh / m³, excl. btw (btw komt eroverheen).
- *  - Frisdrank/sap: verbruiksbelasting alcoholvrije dranken € 26,13/hl;
- *    mineraalwater (ongezoet, ongearomatiseerd) € 0.
+ * Duty mechanics:
+ *  - Beer: since 1-1-2024 taxed on % vol (no °Plato conversion):
+ *    hl x % vol x € 8.12, % vol rounded DOWN to 1 decimal, with a floor of
+ *    € 26.13 per hl (the floor binds below about 3.2 % vol).
+ *  - Wine: % vol alone picks the rate (≤ 8.5 % € 47.95/hl; > 8.5 % € 95.69/hl).
+ *  - Spirits: € 18.27 per litre of pure alcohol.
+ *  - Cigarettes: € 362.12 per 1,000 + 5 % of retail price, minimum
+ *    € 390.42 per 1,000 in total.
+ *  - Fuel: excise per litre (2026 temporary cut included) + stock levy
+ *    € 0.008/L.
+ *  - Energy tax per kWh / m³, excluding VAT (VAT is charged on top).
+ *  - Soft drinks/juice: € 26.13/hl consumption tax; plain mineral water € 0.
  */
 (function (g) {
   const WAIP = g.WAIP;
   const num = WAIP.num;
+  // The English take() sentence prints dot decimals, unlike the comma used
+  // everywhere else on the NL receipt (kept as published).
+  const moneyDot = v => WAIP.formatMoney({ currency: { symbol: '\u20ac' } }, v);
 
   const RATES = {
     beer: { per_hl_per_vol: 8.12, min_per_hl: 26.13 },
@@ -36,8 +37,7 @@
     code: 'nl',
     ratesStatus: 'ok',
     salaryDefault: 42000,
-    rates: RATES,
-    // Rijksbegroting 2026 (miljoenen), zie where-goes-2026.md
+    // Rijksbegroting 2026 (EUR millions), see where-goes-2026.md
     budget: {
       social: 124700, population: 18130208,
       cats: {
@@ -71,9 +71,9 @@
       boek:    { name: 'Boek (9% btw)', nameEn: 'Book (9% VAT)', price: 15.00, vat: 0.09, kind: 'none' },
       custom:  { name: 'Iets anders', nameEn: 'Something else', price: 10.00, vat: 0.21, kind: 'custom', panel: { cfix: 0, cpct: 0 } }
     },
-    // Effectieve marginale tarieven 2026: loonheffing incl. premies
-    // volksverzekeringen, gecorrigeerd voor opbouw/afbouw van de arbeids- en
-    // algemene heffingskorting (zie nl-rates-2026.md). Default: 2e schijf.
+    // Effective marginal rates 2026: wage tax incl. national insurance
+    // premiums, corrected for the build-up/phase-out of the employment and
+    // general tax credits (nl-rates-2026.md). Default: 42.0 % band.
     taxBands: [
       { label: '\u2248 0% (kortingen > heffing), tot \u2248 € 11.350', labelEn: '\u2248 0% (credits exceed tax), up to \u2248 \u20ac 11,350', rate: 0 },
       { label: '\u2248 27,4% (€ 0 \u2013 € 11.965)', labelEn: '\u2248 27.4% (\u20ac 0 \u2013 \u20ac 11,965)', rate: 0.274 },
@@ -98,7 +98,7 @@
       if (kind === 'alcohol') {
         const abv = num(p.abv), ml = num(p.ml), hl = ml / 100000;
         if (p.cat === 'beer') {
-          // %vol naar beneden afgerond op 1 decimaal; minimum € 26,13/hl.
+          // % vol rounded down to 1 decimal; floor of € 26.13 per hl
           const vol = Math.floor(abv * 10) / 10;
           const v = Math.max(hl * vol * R.beer.per_hl_per_vol, hl * R.beer.min_per_hl);
           out.push({ label: en ? `Beer excise (${vol.toFixed(1)}% vol)` : `Bieraccijns (${vol.toFixed(1).replace('.', ',')}% vol)`, v });
@@ -106,7 +106,7 @@
           const rate = abv > 8.5 ? R.wine.above_85_per_hl : R.wine.under_85_per_hl;
           out.push({ label: en ? `Wine excise (\u20ac ${rate.toFixed(2)}/hl)` : `Wijnaccijns (${rate.toFixed(2).replace('.', ',')}/hl)`, v: hl * rate });
         } else if (p.cat === 'spirit') {
-          const lpa = ml / 1000 * abv / 100; // liter pure alcohol
+          const lpa = ml / 1000 * abv / 100; // litres of pure alcohol
           out.push({ label: en ? `Excise spirits (${lpa.toFixed(2)} L pure)` : `Accijns sterke drank (${lpa.toFixed(2).replace('.', ',')} L puur)`, v: lpa * R.spirit_per_l_alc });
         }
       } else if (kind === 'drinks') {
@@ -129,8 +129,8 @@
         out.push({ label: en ? `Excise ${p.fueltype === 'diesel' ? 'diesel' : 'petrol'}` : `Accijns ${p.fueltype === 'diesel' ? 'diesel' : 'benzine'}`, v: num(p.litres) * rate });
         out.push({ label: en ? 'Stock levy' : 'Voorraadheffing', v: num(p.litres) * R.fuel.stock_per_l });
       } else if (kind === 'energy') {
-        if (R.energy.kwh != null) out.push({ label: en ? 'Energy tax electricity' : 'Energiebelasting stroom', v: num(p.kwh) * R.energy.kwh });
-        if (R.energy.m3 != null) out.push({ label: en ? 'Energy tax gas' : 'Energiebelasting gas', v: num(p.m3) * R.energy.m3 });
+        out.push({ label: en ? 'Energy tax electricity' : 'Energiebelasting stroom', v: num(p.kwh) * R.energy.kwh });
+        out.push({ label: en ? 'Energy tax gas' : 'Energiebelasting gas', v: num(p.m3) * R.energy.m3 });
       } else if (kind === 'custom') {
         const f = num(p.cfix), pc = num(p.cpct) / 100;
         const preset = state.preset;
@@ -139,11 +139,16 @@
       }
       return out;
     },
-    // Loonheffing 2026, alleenstaand werknemer <AOW (nl-rates-2026.md):
-    // schijven 35,75 / 37,56 / 49,50 minus algemene heffingskorting (max
-    // € 3.115; afbouw 6,398% boven € 29.736) minus arbeidskorting (max
-    // € 5.685; opbouw 8,324% t/m 11.965, 31,009% t/m 25.845, 1,950% t/m
-    // 45.592; afbouw 6,510% boven 45.592 tot nul bij 132.920).
+    // Loonheffing 2026, single employee below state-pension age
+    // (nl-rates-2026.md). Bracket tax on gross income, minus two credits:
+    //   brackets  35.75 % to 38,883 | 37.56 % to 78,426 | 49.50 % above
+    //   AHK (general credit)     € 3,115, reduced by 6.398 % of income
+    //                            above € 29,736, never below 0
+    //   AK (employment credit)   builds up 8.324 % to 11,965, 31.009 % to
+    //                            25,845, 1.950 % to 45,592 (capped at
+    //                            € 5,685), then phases out at 6.510 % of
+    //                            income above 45,592 (zero at 132,920)
+    // The result is floored at 0 (credits cannot make tax negative).
     incomeTax(gross) {
       const I = Math.max(0, num(gross));
       const bracket = 0.3575 * Math.min(I, 38883)
@@ -220,7 +225,7 @@
       vatLine: vr => `Min btw (${(vr * 100).toFixed(0)}%)`,
       taxLine: m => `Plus inkomstenbelasting (${WAIP.pctRate(m).replace('.', ',')}%)`,
       mult: r => `Je betaalt echt <b>${r.toFixed(2).replace('.', ',')}\u00d7</b> wat het zou kunnen kosten`,
-      take: res => `Van de <b>${WAIP.formatMoney({ currency: { symbol: '\u20ac', decimalComma: true } }, res.gross)}</b> die je verdient om dit te kopen gaat <b>${WAIP.formatMoney({ currency: { symbol: '\u20ac', decimalComma: true } }, res.govt)}</b> (${(res.govt / res.gross * 100).toFixed(0)}%) naar de overheid: <b>${WAIP.formatMoney({ currency: { symbol: '\u20ac', decimalComma: true } }, res.itax)}</b> inkomstenbelasting, <b>${WAIP.formatMoney({ currency: { symbol: '\u20ac', decimalComma: true } }, res.vat)}</b> btw en <b>${WAIP.formatMoney({ currency: { symbol: '\u20ac', decimalComma: true } }, res.duty)}</b> accijns/heffingen.`,
+      take: (res, f) => `Van de <b>${f(res.gross)}</b> die je verdient om dit te kopen gaat <b>${f(res.govt)}</b> (${(res.govt / res.gross * 100).toFixed(0)}%) naar de overheid: <b>${f(res.itax)}</b> inkomstenbelasting, <b>${f(res.vat)}</b> btw en <b>${f(res.duty)}</b> accijns/heffingen.`,
       warnNeg: 'Accijns en btw komen samen hoger uit dan de prijs. Misschien is de prijs te laag voor dit product, of de winkel verkoopt met verlies.',
       notesTitle: 'Gebruikte tarieven (NL, 2026)',
       notesCaveatsTitle: 'Wat dit niet toont',
@@ -244,7 +249,6 @@
         dutyLine: 'Min accijns en heffingen',
         underLine: 'Wat het zou kunnen kosten',
         underSub: 'Prijs min btw en accijns',
-        taxPrefix: 'Inkomstenbelasting en premies',
         grossLine: 'Wat je \u00e9cht betaalt',
         legendUnder: 'Verkoper', legendDuty: 'Accijns', legendVat: 'Btw', legendTax: 'Inkomstenbelasting'
       }
@@ -312,7 +316,7 @@
       vatLine: vr => `Minus VAT (${(vr * 100).toFixed(0)}%)`,
       taxLine: m => `Plus income tax (${WAIP.pctRate(m)}%)`,
       mult: r => `You really pay <b>${r.toFixed(2)}\u00d7</b> what it could cost`,
-      take: res => `Of the <b>${WAIP.formatMoney({ currency: { symbol: '\u20ac' } }, res.gross)}</b> you earn to buy this, <b>${WAIP.formatMoney({ currency: { symbol: '\u20ac' } }, res.govt)}</b> (${(res.govt / res.gross * 100).toFixed(0)}%) goes to the government: <b>${WAIP.formatMoney({ currency: { symbol: '\u20ac' } }, res.itax)}</b> income tax, <b>${WAIP.formatMoney({ currency: { symbol: '\u20ac' } }, res.vat)}</b> VAT and <b>${WAIP.formatMoney({ currency: { symbol: '\u20ac' } }, res.duty)}</b> excise duties.`,
+      take: res => `Of the <b>${moneyDot(res.gross)}</b> you earn to buy this, <b>${moneyDot(res.govt)}</b> (${(res.govt / res.gross * 100).toFixed(0)}%) goes to the government: <b>${moneyDot(res.itax)}</b> income tax, <b>${moneyDot(res.vat)}</b> VAT and <b>${moneyDot(res.duty)}</b> excise duties.`,
       warnNeg: 'Excise duties and VAT together exceed the price. The price may be too low for this product, or the shop is selling at a loss.',
       notesTitle: 'Rates used (NL, 2026)',
       notesCaveatsTitle: 'What this does not show',
@@ -336,7 +340,6 @@
         dutyLine: 'Less excise duties and levies',
         underLine: 'What it could cost',
         underSub: 'Price less VAT and excise duties',
-        taxPrefix: 'Income tax and premiums',
         grossLine: 'What you really pay',
         legendUnder: 'Seller', legendDuty: 'Excise', legendVat: 'VAT', legendTax: 'Income tax'
       }

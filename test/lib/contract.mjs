@@ -74,8 +74,9 @@ function checkCopy(cfg, C, where, kinds, out) {
   }
   try {
     const res = { price: 10, vat: 1, duty: 1, under: 8, gross: 14, itax: 4, govt: 6, vatRate: 0.2, marginal: 0.3, dutyLines: [] };
-    for (const [k, arg] of [['vatLine', 0.2], ['taxLine', 0.3], ['mult', 1.5], ['take', res]]) {
-      if (typeof C[k] === 'function' && !isStr(C[k](arg))) bad(`'${k}()' must return a string`);
+    const f = v => globalThis.WAIP.formatMoney(cfg, v);
+    for (const [k, args] of [['vatLine', [0.2]], ['taxLine', [0.3]], ['mult', [1.5]], ['take', [res, f]]]) {
+      if (typeof C[k] === 'function' && !isStr(C[k](...args))) bad(`'${k}()' must return a string`);
     }
   } catch (e) { bad(`copy function threw: ${e.message}`); }
 }

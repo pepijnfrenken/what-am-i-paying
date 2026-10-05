@@ -17,6 +17,9 @@
 //      the (waived, documented) favicon.ico noise.
 //   5. The country selector mirrors countries/index.js, and the page boots
 //      from file:// (the documented "just open index.html" path).
+//   6. Basic a11y/layout: tab keyboard navigation (roving tabindex), the
+//      language label hides with its control, the price input clears a
+//      multi-character currency prefix.
 //
 // Run:  node test/dom_check.mjs
 // Env:  WAIP_CHROME=/path/to/chrome   WAIP_PORT=8174   WAIP_DBG_PORT=9334
@@ -612,6 +615,26 @@ async function main() {
   check('BG: toggling off hides the table', snap.compareVisible === false);
   const bgErrs = snapshotErrors();
   check('BG: zero console errors / uncaught exceptions', bgErrs.length === 0, bgErrs.join(' | '));
+
+  // ================================================================ a11y / layout
+  await navigate(`${BASE}/?c=ch`);
+  const lay = await evaluate(`(() => {
+    const p = document.getElementById('price'), s = document.getElementById('price-prefix');
+    return { prefixRight: s.getBoundingClientRect().right, textLeft: p.getBoundingClientRect().left + parseFloat(getComputedStyle(p).paddingLeft) };
+  })()`);
+  check('A11Y: CH price text starts after the "CHF " prefix (no overlap)', lay.textLeft >= lay.prefixRight, `prefix ends ${lay.prefixRight.toFixed(1)} | text starts ${lay.textLeft.toFixed(1)}`);
+  await act(`(() => { const t = document.getElementById('tab-receipt'); t.focus(); t.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true })); return true; })()`);
+  const kb = await evaluate(`({ focus: document.activeElement.id, where: !document.getElementById('view-where').hidden, ti: [document.getElementById('tab-receipt').tabIndex, document.getElementById('tab-where').tabIndex] })`);
+  check('A11Y: ArrowRight on the tablist selects and focuses the second tab (roving tabindex)',
+    kb.focus === 'tab-where' && kb.where === true && kb.ti.join(',') === '-1,0', JSON.stringify(kb));
+  await act(`(() => { document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true })); return true; })()`);
+  const kb2 = await evaluate(`({ focus: document.activeElement.id, receipt: !document.getElementById('view-receipt').hidden })`);
+  check('A11Y: Home returns to the first tab', kb2.focus === 'tab-receipt' && kb2.receipt === true, JSON.stringify(kb2));
+  await navigate(`${BASE}/?c=uk`);
+  const ukLang = await evaluate(`({ label: document.getElementById('lang-label').hidden, select: document.getElementById('lang').hidden })`);
+  check('A11Y: UK hides the language label together with its control', ukLang.label === true && ukLang.select === true, JSON.stringify(ukLang));
+  const a11yErrs = snapshotErrors();
+  check('A11Y: zero console errors / uncaught exceptions', a11yErrs.length === 0, a11yErrs.join(' | '));
 
   // ================================================================ language
   await navigate(`${BASE}/?c=nl&lang=en`);

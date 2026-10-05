@@ -66,7 +66,11 @@
  *                   labelEn? } } } in millions of the local currency, from
  *                   where-goes-2026.md.
  *   copy            every user-visible native string (see an existing module
- *                   or the scaffold for the full key list).
+ *                   or the scaffold for the full key list, and
+ *                   test/lib/contract.mjs for what is required). Four keys
+ *                   are functions: vatLine(rate), taxLine(marginal),
+ *                   mult(ratio) and take(res, money), where money(v) formats
+ *                   an amount in the country's currency.
  *   copyEn          optional full English mirror of copy; its presence turns
  *                   on the language control.
  */
