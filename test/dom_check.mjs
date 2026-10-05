@@ -295,6 +295,13 @@ async function main() {
   await act(`(() => { const s = document.getElementById('band-tax'); s.value = '0.28'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   snap = await snapshot();
 
+  // Big Mac preset (eat-in, 20% VAT, no duty)
+  await act(`(() => { const s = document.getElementById('item'); s.value = 'bigmac'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('UK: Big Mac selectable, £5.49 @ 20% VAT, no duty',
+    snap.r.item === 'Big Mac (eat-in)' && snap.r.price === '£5.49' && snap.r.vat === '−£0.92' && snap.r.duty === '£0.00',
+    `${snap.r.price} | ${snap.r.vat} | ${snap.r.duty}`);
+
   // interaction (a): country select uk->nl swaps currency/labels/presets/bands
   await act(`(() => { const s = document.getElementById('country'); s.value = 'nl'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   snap = await snapshot();
@@ -357,6 +364,12 @@ async function main() {
   await act(`(() => { const s = document.getElementById('lang'); s.value = 'native'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   snap = await snapshot();
   check('NL: switching back to native restores Dutch labels', snap.langValue === 'native' && snap.r.vatL === 'Min btw (0%)', snap.r.vatL);
+  // Big Mac preset (eat-in, 9% food service, no duty)
+  await act(`(() => { const s = document.getElementById('item'); s.value = 'bigmac'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('NL: Big Mac selectable, €6,10 @ 9% VAT, no duty',
+    snap.r.item === 'Big Mac (in het restaurant)' && snap.r.price === '€6,10' && snap.r.vat === '−€0,50' && snap.r.duty === '€0,00' && snap.r.vatL === 'Min btw (9%)',
+    `${snap.r.price} | ${snap.r.vat} | ${snap.r.duty} | ${snap.r.vatL}`);
   const nlErrs = snapshotErrors();
   check('NL: zero console errors / uncaught exceptions', nlErrs.length === 0, nlErrs.join(' | '));
 
@@ -380,6 +393,12 @@ async function main() {
   await act(`(() => { const s = document.getElementById('item'); s.value = 'zigaretten'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   snap = await snapshot();
   cross('CH: Zigaretten matches WAIP.compute', WAIP.countries.ch, snap, ['price', 'vat', 'duty', 'under', 'gross', 'tax']);
+  // Big Mac preset (eat-in, 8.1% MWST, no duty)
+  await act(`(() => { const s = document.getElementById('item'); s.value = 'bigmac'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('CH: Big Mac selectable, CHF 7.20 @ 8.1% MWST, no duty',
+    snap.r.item === 'Big Mac (im Restaurant)' && snap.r.price === 'CHF 7.20' && snap.r.vat === '−CHF 0.54' && snap.r.duty === 'CHF 0.00',
+    `${snap.r.price} | ${snap.r.vat} | ${snap.r.duty}`);
   const chErrs = snapshotErrors();
   check('CH: zero console errors / uncaught exceptions', chErrs.length === 0, chErrs.join(' | '));
 
@@ -405,6 +424,12 @@ async function main() {
   await act(`(() => { const s = document.getElementById('item'); s.value = 'tok'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   snap = await snapshot();
   check('BG: ток preset noDutyLabel shown', snap.r.dutySubs.includes('освободени от акциз'), snap.r.dutySubs.slice(0, 70));
+  // Big Mac preset (eat-in, 20% ДДС, no duty)
+  await act(`(() => { const s = document.getElementById('item'); s.value = 'bigmac'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('BG: Big Mac selectable, €6,10 @ 20% ДДС, no duty',
+    snap.r.item === 'Биг Мак (в ресторанта)' && snap.r.price === '€6,10' && snap.r.vat === '−€1,02' && snap.r.duty === '€0,00',
+    `${snap.r.price} | ${snap.r.vat} | ${snap.r.duty}`);
   const bgErrs = snapshotErrors();
   check('BG: zero console errors / uncaught exceptions', bgErrs.length === 0, bgErrs.join(' | '));
 
