@@ -139,6 +139,14 @@ async function main() {
       if (isErrorEvent(m)) errors.push(m);
     }
   };
+  // Never hang on a dead browser: fail fast with a clear error.
+  const failAll = why => {
+    for (const [, p] of pending) p.reject(new Error(why));
+    pending.clear();
+  };
+  ws.onclose = () => failAll('CDP websocket closed (browser died?)');
+  ws.onerror = () => failAll('CDP websocket error');
+  chrome.on('exit', code => failAll(`chromium exited unexpectedly (code ${code})`));
 
   // Log.entryAdded "Failed to load resource" entries are network-layer noise
   // (e.g. the favicon 404) — the Network domain below is the authoritative
@@ -285,9 +293,9 @@ async function main() {
   check('UK->NL: currency prefix becomes €', snap.prefix === '€', snap.prefix);
   check('UK->NL: labels swap (Product)', snap.itemLabel === 'Product', snap.itemLabel);
   check('UK->NL: presets swap (Glas pils present)', snap.itemOptions.some(t => t.includes('Glas pils')), snap.itemOptions.join(', ').slice(0, 80));
-  check('UK->NL: tax bands swap (only Custom pending band)', snap.bandOptions.length === 1 && snap.bandOptions[0] === 'custom', snap.bandOptions.join(','));
+  check('UK->NL: tax bands swap (9 sourced bands + Custom)', snap.bandOptions.length === 10 && snap.bandOptions[9] === 'custom' && snap.band === '0.42', snap.bandOptions.join(','));
   check('UK->NL: VAT options swap (Algemeen 21%)', snap.vatOptions.some(t => t.includes('Algemeen, 21%')), snap.vatOptions.join(', ').slice(0, 60));
-  check('UK->NL: receipt recalculated (gross €6,93)', snap.r.gross === '€6,93', snap.r.gross);
+  check('UK->NL: receipt recalculated (gross €5,78 @ 42% band)', snap.r.gross === '€5,78', snap.r.gross);
   await act(`(() => { const s = document.getElementById('country'); s.value = 'uk'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   snap = await snapshot();
   check('NL->UK: currency/labels/presets restored', snap.prefix === '£' && snap.itemLabel === 'Item' && snap.r.item === 'Mars bar (51g)',
@@ -299,18 +307,27 @@ async function main() {
   await navigate(`${BASE}/?c=nl`);
   snap = await snapshot();
   check('NL: page renders (title)', snap.title.includes('Wat betaal ik eigenlijk?'), snap.title);
-  check('NL: pending-rates note visible', snap.panelsText.includes('Tarieven worden op dit moment geverifieerd'), snap.panelsText.slice(0, 60));
-  check('NL: glas pils exact strings (€3,50 / -€0,61 / €2,89 / €6,93)',
-    snap.r.price === '€3,50' && snap.r.vat === '−€0,61' && snap.r.under === '€2,89' &&
-    snap.r.could === '€2,89' && snap.r.gross === '€6,93' && snap.r.real === '€6,93',
-    `${snap.r.price} | ${snap.r.vat} | ${snap.r.under} | ${snap.r.gross}`);
+  check('NL: pending-rates note is gone (ratesStatus ok)', !snap.panelsText.includes('Tarieven worden op dit moment geverifieerd'), '');
+  check('NL: default band 42,0% selected among 9 + Custom', snap.band === '0.42' && snap.bandOptions.length === 10 && snap.bandOptions[9] === 'custom', snap.bandOptions.join(','));
+  check('NL: custom-rate wrap hidden with default band', snap.customWrapHidden === true);
+  check('NL: glas pils at default band (€3,35 / -€0,58 / -€0,10 / €2,67 / €5,78 @ 42%)',
+    snap.r.price === '€3,35' && snap.r.vat === '−€0,58' && snap.r.duty === '−€0,10' &&
+    snap.r.under === '€2,67' && snap.r.gross === '€5,78' && snap.r.taxL === 'Plus inkomstenbelasting (42%)',
+    `${snap.r.price} | ${snap.r.vat} | ${snap.r.duty} | ${snap.r.under} | ${snap.r.gross} | ${snap.r.taxL}`);
+  check('NL: VAT line label present', snap.r.vatL === 'Min btw (21%)', snap.r.vatL);
+  check('NL: duty sub-line rendered (Bieraccijns)', snap.r.dutySubs.includes('Bieraccijns'), snap.r.dutySubs.slice(0, 60));
+  // brief's expectations are for the Custom 49,5% band (crate default)
+  await act(`(() => { const s = document.getElementById('band-tax'); s.value = 'custom'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('NL: Custom band shows #custom-rate-wrap (crate 49.5)', snap.customWrapHidden === false && snap.crate === '49.5', 'crate=' + snap.crate);
+  check('NL: glas pils exact strings (€3,35 / -€0,58 / -€0,10 / €2,67 / €6,63)',
+    snap.r.price === '€3,35' && snap.r.vat === '−€0,58' && snap.r.duty === '−€0,10' &&
+    snap.r.under === '€2,67' && snap.r.could === '€2,67' && snap.r.gross === '€6,63' && snap.r.real === '€6,63',
+    `${snap.r.price} | ${snap.r.vat} | ${snap.r.duty} | ${snap.r.under} | ${snap.r.gross}`);
   check('NL: comma decimals used (no dot money)', /^€\d+,\d{2}$/.test(snap.r.gross) && !snap.r.gross.includes('.'), snap.r.gross);
   check('NL: margin line in comma decimals (49,5%)', snap.r.taxL === 'Plus inkomstenbelasting (49,5%)', snap.r.taxL);
-  check('NL: default Custom band (49,5%) is the only option', snap.bandOptions.length === 1 && snap.bandOptions[0] === 'custom' && snap.crate === '49.5',
-    snap.bandOptions.join(',') + ' crate=' + snap.crate);
-  check('NL: custom-rate wrap visible with Custom band', snap.customWrapHidden === false);
   check('NL: duty panel rendered (bier cat)', snap.panelsText.includes('Bier') && 'abv' in snap.panel, '');
-  cross('NL: glas pils matches WAIP.compute (marginal 0.495)', WAIP.countries.nl, snap, ['price', 'vat', 'duty', 'under', 'gross', 'tax']);
+  cross('NL: glas pils matches WAIP.compute (Custom 49,5%)', WAIP.countries.nl, snap, ['price', 'vat', 'duty', 'under', 'gross', 'tax']);
   const nlErrs = snapshotErrors();
   check('NL: zero console errors / uncaught exceptions', nlErrs.length === 0, nlErrs.join(' | '));
 
