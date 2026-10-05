@@ -32,7 +32,10 @@ Light-only theme (no dark variant). The country bar shows a language control
 for countries that ship an English mirror (`copyEn`): `?lang=en` selects
 English, `?lang=native` (default) the native copy, and the choice survives
 country switches. Countries without `copyEn` (UK, native == English) hide the
-control. Duty-line labels follow the language via `state.lang`.
+control. Duty-line labels follow the language via `state.lang`. A **"Show all"
+comparison view** (NL: "Toon alles", EN: "Show all") tables every preset of the
+active country — ticket price, what it could cost, what it really costs, % to
+the government — with the current marginal rate; clicking a row loads that item.
 
 ## Adding a country (4 steps)
 
