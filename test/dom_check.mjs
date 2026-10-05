@@ -569,21 +569,21 @@ async function main() {
   await act(`(() => { document.getElementById('show-all').click(); return true; })()`);
   snap = await snapshot();
   check('CH: toggling off hides the table', snap.compareVisible === false);
-  // place selector (CH): federal default → canton changes the route
+  // place selector (CH): Zürich (Stadt) is the default; Bund shows federal only
   await act(`(() => { document.getElementById('tab-where').click(); return true; })()`);
   snap = await snapshot();
-  check('CH: place selector visible (Ort, 5 options, default Bund)',
+  check('CH: place selector visible (Ort, 5 options, default Zürich)',
     snap.wgPlaceVisible === true && snap.wgPlaceLabel === 'Ort' && snap.wgPlaces.length === 5 &&
-    snap.wgPlaces[0] === 'Nur Bundessteuer' && snap.wgPlace === 'bund',
+    snap.wgPlaces[0] === 'Nur Bundessteuer' && snap.wgPlace === 'zh',
     `${snap.wgPlace} | ${snap.wgPlaces.join(',')}`);
-  check('CH: federal-only default — below the consolidated baseline',
-    snap.wgBelowVisible === true && snap.wgRoute.includes('CHF 2684.35'), snap.wgRoute);
-  await act(`(() => { const s = document.getElementById('wg-place'); s.value = 'zh'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
-  snap = await snapshot();
-  check('CH: switch to Zürich — total 15.888,15, above baseline, 7 categories',
-    snap.wgPlace === 'zh' && snap.wgAboveVisible === true && snap.wgRows === 7 &&
+  check('CH: default Zürich — total 15.888,15 above the consolidated baseline, 7 categories',
+    snap.wgAboveVisible === true && snap.wgRows === 7 &&
     snap.wgRoute.includes('Zürich (Stadt)') && snap.wgRoute.includes('15888.15') && snap.wgRoute.includes('(15.9%)'),
     snap.wgRoute);
+  await act(`(() => { const s = document.getElementById('wg-place'); s.value = 'bund'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('CH: switch to Bund — federal only, below the consolidated baseline',
+    snap.wgPlace === 'bund' && snap.wgBelowVisible === true && snap.wgRoute.includes('CHF 2684.35'), snap.wgRoute);
   await act(`(() => { document.querySelector('button.info[data-info="route"]').click(); return true; })()`);
   snap = await snapshot();
   check('CH: route info mentions cantonal/communal + spread',
@@ -713,13 +713,15 @@ async function main() {
   await navigate(`${BASE}/?c=ch&lang=en`);
   await act(`(() => { document.getElementById('tab-where').click(); return true; })()`);
   snap = await snapshot();
-  check('LANG: CH place selector in English (Place, Federal only)',
-    snap.wgPlaceLabel === 'Place' && snap.wgPlaces.includes('Federal only') && snap.wgPlaces.includes('Zürich (city)') && snap.wgPlace === 'bund',
+  check('LANG: CH place selector in English (Place, Federal only first)',
+    snap.wgPlaceLabel === 'Place' && snap.wgPlaces.includes('Federal only') && snap.wgPlaces.includes('Zürich (city)') && snap.wgPlace === 'zh',
     `${snap.wgPlaceLabel} | ${snap.wgPlaces.join(',')}`);
-  await act(`(() => { const s = document.getElementById('wg-place'); s.value = 'zh'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
-  snap = await snapshot();
-  check('LANG: CH route in English (Income tax, Zürich 15,888.15)',
+  check('LANG: CH default route in English (Income tax, Zürich 15,888.15)',
     snap.wgRoute.includes('Income tax') && snap.wgRoute.includes('Zürich (city)') && snap.wgRoute.includes('15888.15'), snap.wgRoute);
+  await act(`(() => { const s = document.getElementById('wg-place'); s.value = 'bund'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('LANG: CH Bund route in English (federal only, below baseline)',
+    snap.wgPlace === 'bund' && snap.wgRoute.includes('Federal only') && snap.wgRoute.includes('CHF 2684.35'), snap.wgRoute);
   await act(`(() => { document.getElementById('tab-receipt').click(); return true; })()`);
   const langErrs = snapshotErrors();
   check('LANG: zero console errors / uncaught exceptions', langErrs.length === 0, langErrs.join(' | '));

@@ -104,7 +104,7 @@ check('Dezimalpunkt (kein decimalComma)', ch.currency.decimalComma !== true && c
   check('einfache Steuer BE 6.600 -> 160,05', close(WAIP.chSimpleTax('be', 6600), 160.05));
   check('einfache Steuer ZG 94.800 -> 5.114,50', close(WAIP.chSimpleTax('zg', 94800), 5114.50));
   check('ZG rundet auf volle CHF 100 ab (142.688 -> 142.600)', close(WAIP.chSimpleTax('zg', 142688), 9669.50));
-  check('Ort default = Bund', ch.placeDefault === 'bund' && ch.places.length === 5);
+  check('Ort default = Zürich (Stadt); Bund bleibt erste Option', ch.placeDefault === 'zh' && ch.places.length === 5 && ch.places[0].key === 'bund');
 }
 
 // --- Wocheneinkäufe 2026 (reduced 2.6 %) ------------------------------------

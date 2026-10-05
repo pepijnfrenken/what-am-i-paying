@@ -88,7 +88,10 @@
     ratesStatus: 'ok',
     salaryDefault: 100000,
     places: PLACES,
-    placeDefault: 'bund',
+    // Zürich (Stadt) is the default place — federal-only understated
+    // everything (the point of the consolidated scope). 'Bund only' stays
+    // first in the list but is not selected.
+    placeDefault: 'zh',
     // Konsolidierte Staatsrechnung 2024 (CHF millions; Bund + Kantone +
     // Gemeinden + Sozialversicherungen, transfers eliminated), see
     // where-goes-2026.md; supersedes the former federal-only scope.

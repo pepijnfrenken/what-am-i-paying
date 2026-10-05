@@ -51,7 +51,7 @@ position, and the info buttons on the page say so.
 its annual income tax from the sourced rules: Dutch wage tax with the general
 and employment credits, UK income tax without National Insurance, Swiss
 federal income tax plus a cantonal/communal part via a place selector (Zürich,
-Bern, Zug, Baar — default federal only), and Bulgaria's flat 10 % after social
+Bern, Zug, Baar — default Zürich, "federal only" stays available), and Bulgaria's flat 10 % after social
 contributions. The result is compared with what the state spends per person on
 social security. If you pay more than that, the rest is split over the
 published budget categories in proportion to their size (CH uses the
