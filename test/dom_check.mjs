@@ -230,6 +230,9 @@ async function main() {
       wgExtraLabel: txt('wg-extra-label'),
       tabReceiptLabel: txt('tab-receipt'),
       tabWhereLabel: txt('tab-where'),
+      infoCount: document.querySelectorAll('button.info').length,
+      infoPopVisible: !g('info-pop').hidden,
+      infoPopText: txt('info-pop'),
       bandOptions: Array.from(bt.options).map(o => o.value),
       itemOptions: Array.from(g('item').options).map(o => o.textContent),
       itemHint: txt('item-hint'),
@@ -481,6 +484,29 @@ async function main() {
   snap = await snapshot();
   check('NL: back on receipt tab — state kept (item krat, income 45000)',
     snap.recVisible === true && snap.wgVisible === false && snap.item === 'krat' && snap.wgIncome === '45000', `${snap.item} | ${snap.wgIncome}`);
+  // inline info buttons (single shared implementation)
+  check('NL: info triggers present at all anchors', snap.infoCount >= 11, `count=${snap.infoCount}`);
+  await act(`(() => { document.querySelector('button.info[data-info="wedge"]').click(); return true; })()`);
+  snap = await snapshot();
+  check('NL: info click opens the popover with Dutch text',
+    snap.infoPopVisible === true && snap.infoPopText.length > 20 && snap.infoPopText.includes('marginaal'),
+    snap.infoPopText.slice(0, 60));
+  await act(`(() => { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); return true; })()`);
+  snap = await snapshot();
+  check('NL: Escape closes the popover', snap.infoPopVisible === false);
+  await act(`(() => { document.querySelector('button.info[data-info="duty"]').focus(); return true; })()`);
+  snap = await snapshot();
+  check('NL: keyboard focus opens the popover (btw content)',
+    snap.infoPopVisible === true && snap.infoPopText.includes('btw'), snap.infoPopText.slice(0, 60));
+  await act(`(() => { document.body.click(); return true; })()`);
+  snap = await snapshot();
+  check('NL: click-away closes the popover', snap.infoPopVisible === false);
+  await act(`(() => { document.querySelector('button.info[data-info="marginal"]').click(); return true; })()`);
+  snap = await snapshot();
+  check('NL: trigger click opens the popover again', snap.infoPopVisible === true);
+  await act(`(() => { document.querySelector('button.info[data-info="marginal"]').click(); return true; })()`);
+  snap = await snapshot();
+  check('NL: second click on the same trigger closes it', snap.infoPopVisible === false);
   const nlErrs = snapshotErrors();
   check('NL: zero console errors / uncaught exceptions', nlErrs.length === 0, nlErrs.join(' | '));
 
@@ -602,6 +628,12 @@ async function main() {
     snap.wgRoute.includes('Payroll tax') && snap.wgModeLabel === 'or enter the tax directly',
     `${snap.wgLabel} | ${snap.wgIncome} | ${snap.wgModeLabel}`);
   await act(`(() => { document.getElementById('tab-receipt').click(); return true; })()`);
+  // info popovers follow the language switch
+  await act(`(() => { document.querySelector('button.info[data-info="route"]').click(); return true; })()`);
+  snap = await snapshot();
+  check('LANG: English info text after language switch',
+    snap.infoPopVisible === true && snap.infoPopText.includes('payroll tax'), snap.infoPopText.slice(0, 60));
+  await act(`(() => { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); return true; })()`);
   await act(`(() => { const s = document.getElementById('country'); s.value = 'ch'; s.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   snap = await snapshot();
   check('LANG: country switch preserves English choice (NL→CH)', snap.langValue === 'en' && snap.r.vatL === 'Minus VAT (8.1%)' && snap.langOptions.join(',') === 'Deutsch,English',
