@@ -12,33 +12,31 @@
 //      bands), item change re-renders the duty panel, band-tax custom toggles
 //      #custom-rate-wrap both ways, duty-panel edits recalc the receipt, and
 //      zero console errors / uncaught exceptions on both pages.
-//   4. Zero failed subresources: index.html, core.js, countries/nl.js,
-//      countries/uk.js all load 200; no Network.loadingFailed except the
-//      (waived, documented) favicon.ico noise.
+//   4. Zero failed subresources: index.html, core.js, the registry and every
+//      registered country module load 200; no Network.loadingFailed except
+//      the (waived, documented) favicon.ico noise.
+//   5. The country selector mirrors countries/index.js, and the page boots
+//      from file:// (the documented "just open index.html" path).
 //
 // Run:  node test/dom_check.mjs
 // Env:  WAIP_CHROME=/path/to/chrome   WAIP_PORT=8174   WAIP_DBG_PORT=9334
 // Exits non-zero on any failure.
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { pathToFileURL } from 'node:url';
+import { ROOT, loadWAIP } from './lib/waip.mjs';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = Number(process.env.WAIP_PORT || 8174);
 const DBPORT = Number(process.env.WAIP_DBG_PORT || 9334);
 const BASE = `http://127.0.0.1:${PORT}`;
 const TOL = 0.005;
 
 // ---------------------------------------------------------------- node engine
-const read = p => fs.readFileSync(path.join(ROOT, p), 'utf8');
-eval(read('core.js'));
-eval(read('countries/uk.js'));
-eval(read('countries/nl.js'));
-eval(read('countries/ch.js'));
-eval(read('countries/bg.js'));
-const WAIP = globalThis.WAIP;
+const WAIP = loadWAIP();
+// "nl:Nederland,uk:United Kingdom,..." in registry order
+const REGISTRY_OPTIONS = WAIP.registry.map(e => e.code + ':' + e.name).join(',');
 
 function num(v) { const n = parseFloat(v); return isFinite(n) ? n : 0; }
 const money = s => parseFloat(String(s).replace(/[−\s]/g, '').replace(/[^0-9.,-]/g, '').replace(',', '.'));
@@ -65,6 +63,10 @@ function findChrome() {
     path.join(cache, 'chromium-1234', 'chrome-linux64', 'chrome'),
     path.join(cache, 'chromium_headless_shell-1234', 'chrome-headless-shell-linux64', 'chrome-headless-shell')
   ]) if (fs.existsSync(c)) return c;
+  // system browsers on PATH (CI runners ship google-chrome)
+  for (const bin of ['google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser']) {
+    try { return execFileSync('which', [bin], { encoding: 'utf8' }).trim(); } catch { /* not on PATH */ }
+  }
   return null;
 }
 
@@ -516,7 +518,7 @@ async function main() {
   check('CH: page renders (German title)', snap.title.includes('Was zahle ich wirklich?'), snap.title);
   check('CH: tabs labelled Kassenbon / Wohin geht mein Geld?', snap.tabReceiptLabel === 'Kassenbon' && snap.tabWhereLabel === 'Wohin geht mein Geld?',
     `${snap.tabReceiptLabel} | ${snap.tabWhereLabel}`);
-  check('CH: country selector lists nl/uk/ch/bg', snap.countries.length === 4 && snap.countries.join(',') === 'nl:Nederland,uk:United Kingdom,ch:Schweiz,bg:България', snap.countries.join(','));
+  check('CH: country selector lists the registry in order', snap.countries.join(',') === REGISTRY_OPTIONS, snap.countries.join(','));
   check('CH: default item Bier 5 dl; gross CHF 11.08 (dot decimals)',
     snap.r.item === 'Bier 5 dl in der Bar, 12°P' && snap.r.gross === 'CHF 11.08' &&
     /^CHF \d+\.\d{2}$/.test(snap.r.gross) && !snap.r.gross.includes(','),
@@ -562,7 +564,7 @@ async function main() {
   check('BG: page renders (Bulgarian title)', snap.title.includes('Какво всъщност плащам?'), snap.title);
   check('BG: tabs labelled Касов бон / Къде отива данъкът ми?', snap.tabReceiptLabel === 'Касов бон' && snap.tabWhereLabel === 'Къде отива данъкът ми?',
     `${snap.tabReceiptLabel} | ${snap.tabWhereLabel}`);
-  check('BG: country selector lists nl/uk/ch/bg', snap.countries.length === 4 && snap.countries.join(',') === 'nl:Nederland,uk:United Kingdom,ch:Schweiz,bg:България', snap.countries.join(','));
+  check('BG: country selector lists the registry in order', snap.countries.join(',') === REGISTRY_OPTIONS, snap.countries.join(','));
   check('BG: default item бира; gross €5,15 (comma decimals) @ 22,4 %',
     snap.r.item.includes('Бира') && snap.r.gross === '€5,15' && /^€\d+,\d{2}$/.test(snap.r.gross),
     `${snap.r.item} | ${snap.r.gross}`);
@@ -649,6 +651,17 @@ async function main() {
   await navigate(`${BASE}/?c=ch&lang=native`);
   snap = await snapshot();
   check('LANG: explicit ?lang=native renders native (Minus MWST 8.1%)', snap.langValue === 'native' && snap.r.vatL === 'Minus MWST (8.1%)', `${snap.langValue} | ${snap.r.vatL}`);
+  const langErrs = snapshotErrors();
+  check('LANG: zero console errors / uncaught exceptions', langErrs.length === 0, langErrs.join(' | '));
+
+  // ================================================================ file://
+  await navigate(pathToFileURL(path.join(ROOT, 'index.html')).href + '?c=uk');
+  snap = await snapshot();
+  check('FILE: index.html boots from file:// (registry modules load, UK Mars receipt)',
+    snap.r.item === 'Mars bar (51g)' && snap.r.gross === '£1.39' && snap.countries.join(',') === REGISTRY_OPTIONS,
+    `${snap.r.item} | ${snap.r.gross} | ${snap.countries.length} countries`);
+  const fileErrs = snapshotErrors();
+  check('FILE: zero console errors / uncaught exceptions', fileErrs.length === 0, fileErrs.join(' | '));
 
   // ================================================================ network
   const resp = history.filter(ev => ev.method === 'Network.responseReceived').map(ev => ({ url: ev.params.response.url, status: ev.params.response.status }));
@@ -660,10 +673,10 @@ async function main() {
     canceled: !!ev.params.canceled
   }));
 
-  for (const file of ['index.html', 'core.js', 'countries/nl.js', 'countries/uk.js', 'countries/ch.js', 'countries/bg.js']) {
+  for (const file of ['index.html', 'core.js', 'countries/index.js', ...WAIP.registry.map(e => e.module)]) {
     const hits = resp.filter(r => file === 'index.html'
-      ? (r.url === `${BASE}/?c=uk` || r.url === `${BASE}/?c=nl` || r.url === `${BASE}/?c=ch` || r.url === `${BASE}/?c=bg` || r.url.endsWith('/index.html'))
-      : r.url.endsWith('/' + file));
+      ? (r.url.startsWith(`${BASE}/?c=`) || r.url === `${BASE}/index.html`)
+      : r.url.startsWith(BASE + '/') && r.url.endsWith('/' + file));
     check(`NET: ${file} loaded 200`, hits.some(h => h.status === 200), hits.map(h => h.status).join(',') || 'not seen');
   }
   const bad404 = [];

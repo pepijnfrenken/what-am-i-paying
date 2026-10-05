@@ -29,10 +29,8 @@
 
   WAIP.registerCountry({
     code: 'uk',
-    name: 'United Kingdom',
     ratesStatus: 'ok',
     salaryDefault: 37500,
-    currency: { symbol: '\u00a3', decimals: 2 },
     // TME FY2025-26 (€mn → £mn), see where-goes-2026.md
     budget: {
       social: 407300, population: 69483900,
@@ -122,7 +120,6 @@
         + 0.45 * Math.max(0, taxable - 125140);
     },
     copy: {
-      lang: 'en-GB',
       docTitle: 'What am I actually paying?',
       title: 'What am I actually paying?',
       lede: 'What you really pay is the gross wage you earn to buy something. What it could cost is the price with every tax removed: no duty, no VAT, and no income tax on the money you spend.',

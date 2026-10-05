@@ -17,11 +17,8 @@
 
   WAIP.registerCountry({
     code: 'ch',
-    name: 'Schweiz',
     ratesStatus: 'ok',
-    langNative: 'Deutsch',
     salaryDefault: 100000,
-    currency: { symbol: 'CHF ', decimals: 2 },
     // Bundesvoranschlag 2026 (Mio. CHF; nur Bund), see where-goes-2026.md
     budget: {
       social: 31823, population: 9127100,
@@ -118,7 +115,6 @@
       return tax;
     },
     copy: {
-      lang: 'de-CH',
       langLabel: 'Sprache',
       docTitle: 'Was zahle ich wirklich?',
       title: 'Was zahle ich wirklich?',
@@ -211,7 +207,6 @@
       }
     },
     copyEn: {
-      lang: 'en',
       langLabel: 'Language',
       docTitle: 'What am I actually paying?',
       title: 'What am I actually paying?',

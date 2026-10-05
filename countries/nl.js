@@ -34,11 +34,8 @@
 
   WAIP.registerCountry({
     code: 'nl',
-    name: 'Nederland',
     ratesStatus: 'ok',
-    langNative: 'Nederlands',
     salaryDefault: 42000,
-    currency: { symbol: '\u20ac', decimals: 2, decimalComma: true },
     rates: RATES,
     // Rijksbegroting 2026 (miljoenen), zie where-goes-2026.md
     budget: {
@@ -161,7 +158,6 @@
       return Math.max(0, bracket - ahk - ak);
     },
     copy: {
-      lang: 'nl',
       langLabel: 'Taal',
       docTitle: 'Wat betaal ik eigenlijk?',
       title: 'Wat betaal ik eigenlijk?',
@@ -254,7 +250,6 @@
       }
     },
     copyEn: {
-      lang: 'en',
       langLabel: 'Language',
       docTitle: 'What am I actually paying?',
       title: 'What am I actually paying?',

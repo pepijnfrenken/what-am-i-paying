@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Wat betaal ik eigenlijk?</title>
+<title>What am I actually paying?</title>
+<meta name="description" content="See what a product really costs you: the price split into seller, duty and VAT, plus the income tax on the wage you earned to buy it.">
 <style>
 :root{
   --bg:#E9EFF3; --panel:#F6F8FA; --paper:#FFFFFF;
@@ -123,12 +124,12 @@ table.compare{width:100%;min-width:560px;border-collapse:collapse;background:var
 <body>
 <main>
   <div class="countrybar">
-    <label for="country" id="country-label">Land</label>
+    <label for="country" id="country-label"></label>
     <select id="country"></select>
     <label for="lang" id="lang-label"></label>
     <select id="lang" hidden></select>
   </div>
-  <h1 id="title">Wat betaal ik eigenlijk?</h1>
+  <h1 id="title">What am I actually paying?</h1>
   <p class="lede" id="lede"></p>
 
   <div class="tabs" role="tablist">
@@ -140,26 +141,26 @@ table.compare{width:100%;min-width:560px;border-collapse:collapse;background:var
   <div class="grid">
     <section class="controls" aria-label="Invoer">
       <div class="field">
-        <label for="item" id="item-label">Product</label>
+        <label for="item" id="item-label"></label>
         <select id="item"></select>
         <div class="hint" id="item-hint"></div>
       </div>
       <div class="field">
-        <label for="price" id="price-label">Prijs</label>
-        <div class="prefix"><span id="price-prefix">&euro;</span><input id="price" type="number" step="0.01" min="0" inputmode="decimal"></div>
+        <label for="price" id="price-label"></label>
+        <div class="prefix"><span id="price-prefix"></span><input id="price" type="number" step="0.01" min="0" inputmode="decimal"></div>
         <div class="hint" id="price-hint"></div>
       </div>
       <div class="field">
-        <label for="vat" id="vat-label">Btw</label>
+        <label for="vat" id="vat-label"></label>
         <select id="vat"></select>
       </div>
 
       <div id="duty-fields">
-        <div class="group-title" id="panels-title">Accijns &amp; heffingen</div>
+        <div class="group-title" id="panels-title"></div>
         <div id="panels"></div>
       </div>
 
-      <div class="group-title" id="tax-title">Jouw belasting</div>
+      <div class="group-title" id="tax-title"></div>
       <div class="field">
         <label for="band-tax" class="band-lab"><span id="tax-label"></span><button class="info" type="button" data-info="marginal"></button></label>
         <select id="band-tax"></select>
@@ -266,12 +267,7 @@ table.compare{width:100%;min-width:560px;border-collapse:collapse;background:var
 </main>
 
 <script src="core.js"></script>
-<script src="countries/nl.js"></script>
-<script src="countries/uk.js"></script>
-<script src="countries/ch.js"></script>
-<script src="countries/bg.js"></script>
-<script>
-  WAIP.mount(new URLSearchParams(location.search).get('c') || 'nl');
-</script>
+<script src="countries/index.js"></script>
+<script>WAIP.boot();</script>
 </body>
 </html>

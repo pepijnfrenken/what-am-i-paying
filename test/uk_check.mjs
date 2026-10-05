@@ -1,13 +1,9 @@
 // test/uk_check.mjs — verify the modular UK country module reproduces the
 // original UK page's math exactly (verbatim formulas re-implemented here),
 // plus a few hand-computed anchors.
-import fs from 'node:fs';
+import { loadWAIP } from './lib/waip.mjs';
 
-const read = p => fs.readFileSync(new URL(p, import.meta.url), 'utf8');
-eval(read('../core.js'));
-eval(read('../countries/uk.js'));
-
-const WAIP = globalThis.WAIP;
+const WAIP = loadWAIP(['uk']);
 const uk = WAIP.countries.uk;
 const num = v => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
 

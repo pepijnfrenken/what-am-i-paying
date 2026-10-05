@@ -1,12 +1,8 @@
 // test/bg_check.mjs — verify the BG module against the sourced 2026 rates
 // (countries/bg-rates-2026.md). Hand-computed anchors, exact to 1e-9.
-import fs from 'node:fs';
+import { loadWAIP } from './lib/waip.mjs';
 
-const read = p => fs.readFileSync(new URL(p, import.meta.url), 'utf8');
-eval(read('../core.js'));
-eval(read('../countries/bg.js'));
-
-const WAIP = globalThis.WAIP;
+const WAIP = loadWAIP(['bg']);
 const bg = WAIP.countries.bg;
 const close = (a, b, tol = 1e-9) => Math.abs(a - b) <= tol;
 

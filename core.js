@@ -1,19 +1,48 @@
-/* core.js — country-agnostic engine + UI for "What am I actually paying?" / "Wat betaal ik eigenlijk?"
+/* core.js — country-agnostic engine + UI for "What am I actually paying?".
  *
- * Add a country by creating countries/<cc>.js that calls WAIP.registerCountry(cfg).
- * Config shape and a walkthrough: see README.md.
+ * Countries live in countries/<code>.js and are listed in countries/index.js
+ * (the registry, which also documents the module contract). index.html loads
+ * this file and the registry, then calls WAIP.boot(), which loads every
+ * registered module in registry order and mounts the UI.
  *
  * Works from file:// (classic scripts, no bundler, no dependencies).
  */
 (function (g) {
-  const WAIP = (g.WAIP = g.WAIP || { countries: {}, order: [] });
+  const WAIP = (g.WAIP = g.WAIP || {});
+  WAIP.countries = WAIP.countries || {};
+  WAIP.order = WAIP.order || [];
+
+  // Registry-owned metadata; a module must not declare these itself.
+  const REGISTRY_KEYS = ['name', 'nameEn', 'langNative', 'locale', 'currency'];
 
   WAIP.registerCountry = function (cfg) {
     if (!cfg || !cfg.code) throw new Error('country config needs a code');
+    const meta = (WAIP.registry || []).find(r => r.code === cfg.code);
+    if (!meta) throw new Error(`country '${cfg.code}' is not listed in countries/index.js`);
+    for (const k of REGISTRY_KEYS) {
+      if (k in cfg) throw new Error(`country '${cfg.code}': '${k}' belongs in countries/index.js, not the module`);
+      cfg[k] = meta[k];
+    }
     WAIP.countries[cfg.code] = cfg;
-    WAIP.order.push(cfg.code);
+    WAIP.order = WAIP.registry.map(r => r.code).filter(c => WAIP.countries[c]);
   };
-  WAIP.get = code => WAIP.countries[code];
+
+  // Load every registered module (in registry order), then mount. ?c=<code>
+  // picks the country; absent or unknown falls back to the first entry.
+  WAIP.boot = function () {
+    const entries = WAIP.registry || [];
+    const code = new URLSearchParams(location.search).get('c');
+    let left = entries.length;
+    const done = () => { if (--left === 0) WAIP.mount(code); };
+    for (const e of entries) {
+      const s = document.createElement('script');
+      s.src = e.module;
+      s.async = false; // dynamic scripts default to async; keep registry order
+      s.onload = done;
+      s.onerror = () => { console.error(`WAIP: could not load ${e.module}`); done(); };
+      document.head.appendChild(s);
+    }
+  };
 
   const $ = id => document.getElementById(id);
   WAIP.num = v => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
@@ -261,7 +290,7 @@
     function applyStaticCopy() {
       const C = labelCopy(cfg);
       document.title = C.docTitle || C.title;
-      document.documentElement.lang = C.lang || cfg.code;
+      document.documentElement.lang = C === cfg.copy ? cfg.locale : 'en';
       $('title').textContent = C.title;
       $('lede').textContent = C.lede;
       $('country-label').textContent = C.countryLabel;

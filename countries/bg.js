@@ -19,11 +19,8 @@
 
   WAIP.registerCountry({
     code: 'bg',
-    name: 'България',
     ratesStatus: 'ok',
-    langNative: 'Български',
     salaryDefault: 27600,
-    currency: { symbol: '€', decimals: 2, decimalComma: true },
     // КФП 2026 (млн. €), see where-goes-2026.md
     budget: {
       social: 19240.7, population: 6423207,
@@ -108,7 +105,6 @@
       return 0.1 * (I - 0.1378 * Math.min(I, cap));
     },
     copy: {
-      lang: 'bg',
       langLabel: 'Език',
       docTitle: 'Какво всъщност плащам?',
       title: 'Какво всъщност плащам?',
@@ -200,7 +196,6 @@
       }
     },
     copyEn: {
-      lang: 'en',
       langLabel: 'Language',
       docTitle: 'What am I actually paying?',
       title: 'What am I actually paying?',
