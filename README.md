@@ -116,9 +116,10 @@ This is an illustration, not tax advice. Things to keep in mind:
   cantons/communes, married tariffs and wealth tax are not modelled.
 - The UK income-tax route leaves out National Insurance, and is labelled that
   way on the page.
-- The UK duty rates were taken from the original UK page and have not been
-  independently re-checked against gov.uk in this repository. The UK income
-  tax rules have.
+- The UK duty rates were independently verified against gov.uk on
+  2026-10-05 (see countries/uk-rates-2026.md); alcohol duty applies HMRC's
+  round-down-to-the-penny. The UK income tax rules are verified separately
+  (countries/uk-tax-2026.md).
 - Prices are typical defaults with an as-of date. Rates are 2026 values and
   will go out of date.
 
