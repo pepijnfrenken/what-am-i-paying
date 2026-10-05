@@ -1,0 +1,23 @@
+name: CI
+
+# Every registered country's checker, the registry/doc/contract checks and the
+# real-browser DOM check. test/run_all.mjs discovers countries from
+# countries/index.js, so this file never changes when a country is added.
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Run all suites (countries + DOM)
+        run: node test/run_all.mjs
