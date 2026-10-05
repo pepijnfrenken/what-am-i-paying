@@ -113,5 +113,21 @@ check('mineraalwater 330ml -> 0', duty({ price: 0.95, vatRate: 0.21, marginal: 0
   check('Big Mac 6,10 @9%: btw = 6,10 x 9/109 = 0,503670..., accijns 0', close(got.vat, 6.10 * 9 / 109) && got.duty === 0, `vat=${got.vat} duty=${got.duty}`);
 }
 
+// --- budget split (Rijksbegroting 2026, where-goes-2026.md) ----------------
+{
+  const baseline = nl.budget.social * 1e6 / nl.budget.population;
+  const extrasTotal = Object.values(nl.budget.cats).reduce((a, c) => a + c.v, 0);
+  check('wg: baseline = 124700e6 / 18130208 = 6 878,0...', close(baseline, 124700e6 / 18130208), `baseline=${baseline}`);
+  let s = WAIP.budgetSplit(nl, baseline);
+  check('wg: amount = baseline -> 100% sociaal (extra 0)', !s.below && close(s.extra, 0) && s.rows.length === Object.keys(nl.budget.cats).length);
+  s = WAIP.budgetSplit(nl, baseline - 1000);
+  check('wg: onder baseline -> gap 1000', s.below && close(s.gap, 1000));
+  const X = 1000;
+  s = WAIP.budgetSplit(nl, baseline + X);
+  const tot = s.rows.reduce((a, r) => a + r.v, 0);
+  check('wg: extra X = 1000, rij-som = X, sociaal = baseline', !s.below && close(s.extra, X) && close(tot, X) && close(baseline + X - tot, baseline));
+  check('wg: elke categorie = X x cat/extrasTotal (zorg)', close(s.rows.find(r => r.key === 'zorg').v, X * nl.budget.cats.zorg.v / extrasTotal));
+}
+
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);
 process.exit(fails === 0 ? 0 : 1);

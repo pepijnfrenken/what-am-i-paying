@@ -81,6 +81,23 @@ for (const [key, preset] of Object.entries(uk.presets)) {
   console.log(`anchor: Big Mac 5.49 -> vat ${got.vat.toFixed(6)} (5.49*20/120=${(5.49 * 20 / 120).toFixed(6)}), duty ${got.duty} ${ok ? 'ok' : 'FAIL'}`);
   if (!ok) fails++;
 }
+// budget split anchors (TME FY2025-26, where-goes-2026.md)
+{
+  const baseline = uk.budget.social * 1e6 / uk.budget.population;
+  const extrasTotal = Object.values(uk.budget.cats).reduce((a, c) => a + c.v, 0);
+  let fail = !(Math.abs(baseline - 407300e6 / 69483900) < 1e-9);
+  let s = WAIP.budgetSplit(uk, baseline);
+  if (!(!s.below && Math.abs(s.extra) < 1e-9)) fail = true;
+  s = WAIP.budgetSplit(uk, baseline - 500);
+  if (!(s.below && Math.abs(s.gap - 500) < 1e-9)) fail = true;
+  const X = 500;
+  s = WAIP.budgetSplit(uk, baseline + X);
+  const tot = s.rows.reduce((a, r) => a + r.v, 0);
+  if (!(!s.below && Math.abs(s.extra - X) < 1e-9 && Math.abs(tot - X) < 1e-9)) fail = true;
+  if (!(Math.abs(s.rows.find(r => r.key === 'health').v - X * uk.budget.cats.health.v / extrasTotal) < 1e-9)) fail = true;
+  console.log(`anchor: budget split (baseline ${baseline.toFixed(2)}, sum=${tot.toFixed(6)}, health=${s.rows.find(r => r.key === 'health').v.toFixed(6)}) ${fail ? 'FAIL' : 'ok'}`);
+  if (fail) fails++;
+}
 // NL module is covered by test/nl_check.mjs (sourced 2026 duty rates).
 
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);

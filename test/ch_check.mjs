@@ -77,5 +77,21 @@ check('Dezimalpunkt (kein decimalComma)', ch.currency.decimalComma !== true && c
   check('Big Mac 7.20 @8.1%: MWST = 7.20 x 8.1/108.1 = 0.539500..., duty 0', close(got.vat, 7.20 * 8.1 / 108.1) && got.duty === 0, `vat=${got.vat} duty=${got.duty}`);
 }
 
+// --- budget split (Bundesvoranschlag 2026, where-goes-2026.md) --------------
+{
+  const baseline = ch.budget.social * 1e6 / ch.budget.population;
+  const extrasTotal = Object.values(ch.budget.cats).reduce((a, c) => a + c.v, 0);
+  check('wg: baseline = 31823e6/9127100 = 3 487,0...', close(baseline, 31823e6 / 9127100), `baseline=${baseline}`);
+  let s = WAIP.budgetSplit(ch, baseline);
+  check('wg: amount = baseline -> 100% sozial (extra 0)', !s.below && close(s.extra, 0));
+  s = WAIP.budgetSplit(ch, baseline - 800);
+  check('wg: unter baseline -> gap 800', s.below && close(s.gap, 800));
+  const X = 500;
+  s = WAIP.budgetSplit(ch, baseline + X);
+  const tot = s.rows.reduce((a, r) => a + r.v, 0);
+  check('wg: extra = X, Summe = X, Sozial = baseline', !s.below && close(s.extra, X) && close(tot, X) && close(baseline + X - tot, baseline));
+  check('wg: Kategorie proportional (finanzen)', close(s.rows.find(r => r.key === 'finanzen').v, X * ch.budget.cats.finanzen.v / extrasTotal));
+}
+
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);
 process.exit(fails === 0 ? 0 : 1);

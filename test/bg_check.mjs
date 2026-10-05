@@ -81,5 +81,21 @@ check('хлябът е 20 % ДДС (без намалено)', bg.presets.hlyab.
   check('Big Mac 6,10 @20%: ДДС = 6,10 x 20/120 = 1,016667, акциз 0', close(got.vat, 6.10 * 20 / 120) && got.duty === 0, `vat=${got.vat} duty=${got.duty}`);
 }
 
+// --- budget split (КФП 2026, where-goes-2026.md) ----------------------------
+{
+  const baseline = bg.budget.social * 1e6 / bg.budget.population;
+  const extrasTotal = Object.values(bg.budget.cats).reduce((a, c) => a + c.v, 0);
+  check('wg: baseline = 19240,7e6/6423207 = 2 995,0...', close(baseline, 19240.7e6 / 6423207), `baseline=${baseline}`);
+  let s = WAIP.budgetSplit(bg, baseline);
+  check('wg: amount = baseline -> 100% социално (extra 0)', !s.below && close(s.extra, 0));
+  s = WAIP.budgetSplit(bg, baseline - 300);
+  check('wg: под baseline -> gap 300', s.below && close(s.gap, 300));
+  const X = 1000;
+  s = WAIP.budgetSplit(bg, baseline + X);
+  const tot = s.rows.reduce((a, r) => a + r.v, 0);
+  check('wg: extra = X, сума = X, социално = baseline', !s.below && close(s.extra, X) && close(tot, X) && close(baseline + X - tot, baseline));
+  check('wg: категория пропорционална (zdrave)', close(s.rows.find(r => r.key === 'zdrave').v, X * bg.budget.cats.zdrave.v / extrasTotal));
+}
+
 console.log(fails === 0 ? '\nALL CHECKS PASSED' : `\n${fails} CHECK(S) FAILED`);
 process.exit(fails === 0 ? 0 : 1);
