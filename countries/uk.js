@@ -31,6 +31,7 @@
     code: 'uk',
     name: 'United Kingdom',
     ratesStatus: 'ok',
+    salaryDefault: 37500,
     currency: { symbol: '\u00a3', decimals: 2 },
     // TME FY2025-26 (€mn → £mn), see where-goes-2026.md
     budget: {
@@ -131,7 +132,13 @@
       compare: { item: 'Item', price: 'Price', could: 'What it could cost', real: 'What it really costs', govt: '% to the government' },
       tabs: { receipt: 'Receipt', where: 'Where does my money go?' },
       wheregoes: {
-        input: 'Your income tax per year',
+        input: 'Gross yearly income (\u2248 taxable income)',
+        taxLabel: 'Your income tax per year',
+        directToggle: 'or enter the tax directly',
+        grossName: 'Gross salary',
+        taxName: 'Income tax',
+        directTag: '(entered directly)',
+        incomeDefaultNote: 'Default: ~\u00a3 37,500 (median full-time salary, ASHE 2024/25, rounded).',
         yourLabel: 'Your tax',
         baselineName: 'What you cost (per person)',
         socialBlock: 'What you cost yourself (social security)',

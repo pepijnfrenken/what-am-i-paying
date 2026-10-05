@@ -20,6 +20,7 @@
     name: 'Schweiz',
     ratesStatus: 'ok',
     langNative: 'Deutsch',
+    salaryDefault: 100000,
     currency: { symbol: 'CHF ', decimals: 2 },
     // Bundesvoranschlag 2026 (Mio. CHF; nur Bund), see where-goes-2026.md
     budget: {
@@ -126,7 +127,13 @@
       compare: { item: 'Produkt', price: 'Preis', could: 'Was es kosten k\u00f6nnte', real: 'Was es wirklich kostet', govt: '% an den Staat' },
       tabs: { receipt: 'Kassenbon', where: 'Wohin geht mein Geld?' },
       wheregoes: {
-        input: 'Deine Einkommenssteuer pro Jahr',
+        input: 'Bruttojahreslohn (\u2248 steuerbares Einkommen)',
+        taxLabel: 'Deine Einkommenssteuer pro Jahr',
+        directToggle: 'oder Steuer direkt eingeben',
+        grossName: 'Bruttojahreslohn',
+        taxName: 'Einkommenssteuer',
+        directTag: '(direkt eingegeben)',
+        incomeDefaultNote: 'Standard: ca. CHF 100.000 steuerbar \u2014 entspricht der Standardbande Z\u00fcrich.',
         yourLabel: 'Deine Steuer',
         baselineName: 'Was du kostest (pro Person)',
         socialBlock: 'Was du selbst kostest (Sozialversicherungen)',
@@ -200,7 +207,13 @@
       compare: { item: 'Item', price: 'Price', could: 'What it could cost', real: 'What it really costs', govt: '% to the government' },
       tabs: { receipt: 'Receipt', where: 'Where does my money go?' },
       wheregoes: {
-        input: 'Your income tax per year',
+        input: 'Gross yearly income (\u2248 taxable income)',
+        taxLabel: 'Your income tax per year',
+        directToggle: 'or enter the tax directly',
+        grossName: 'Gross salary',
+        taxName: 'Income tax',
+        directTag: '(entered directly)',
+        incomeDefaultNote: 'Default: ~CHF 100,000 taxable \u2014 matches the Z\u00fcrich standard band.',
         yourLabel: 'Your tax',
         baselineName: 'What you cost (per person)',
         socialBlock: 'What you cost yourself (social security)',

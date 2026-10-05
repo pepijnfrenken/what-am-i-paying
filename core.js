@@ -59,6 +59,12 @@
   };
 
   // ---------------------------------------------------------------- comparisons
+  // Income tax derived from the site's existing wage-wedge model (gross =
+  // price / (1 - marginal) -> itax = gross x marginal): reuse, not a fork.
+  WAIP.incomeTax = function (cfg, gross, marginal) {
+    const m = Math.max(0, Math.min(1, WAIP.num(marginal)));
+    return Math.max(0, WAIP.num(gross)) * m;
+  };
   // Pure split for the "where does my money go" view. Rule (where-goes-2026.md):
   // baseline = social x 1e6 / population; amount below baseline -> gap; at/above
   // -> extra = amount - baseline distributed over the listed budget categories
@@ -297,7 +303,11 @@
       applyStaticCopy(); loadVat(); loadTaxBands(); loadPresets(); buildLangOptions(); updateShowAllUI();
       $('item').value = cur;
       applyPreset(cur);
-      if (!preserveItem) $('wg-income').value = String(Math.round(WAIP.budgetBaseline(cfg) / 100) * 100);
+      if (!preserveItem) {
+        $('wg-income').value = String(cfg.salaryDefault || 0);
+        $('wg-mode').checked = false;
+        $('wg-tax').value = '';
+      }
       if (wgActive) renderWhere();
     }
     function calc() {
@@ -377,10 +387,26 @@
       const W = labelCopy(cfg).wheregoes;
       const f = v => WAIP.formatMoney(cfg, v);
       $('wg-label').textContent = W.input;
+      $('wg-tax-label').textContent = W.taxLabel;
+      $('wg-mode-label').textContent = W.directToggle;
+      $('wg-default-note').textContent = W.incomeDefaultNote;
       $('wg-sources').textContent = W.sources;
       $('wg-scope').textContent = W.scope;
       $('wg-disclaimer').textContent = W.disclaimer;
-      const amount = WAIP.num($('wg-income').value);
+      const direct = $('wg-mode').checked;
+      $('wg-income-wrap').hidden = direct;
+      $('wg-tax-wrap').hidden = !direct;
+      let amount, route;
+      if (direct) {
+        amount = WAIP.num($('wg-tax').value);
+        route = `${W.taxName} ${f(amount)} ${W.directTag}`;
+      } else {
+        const gross = WAIP.num($('wg-income').value);
+        const m = currentMarginal();
+        amount = WAIP.incomeTax(cfg, gross, m);
+        route = `${W.grossName} ${f(gross)} \u2192 ${W.taxName} ${f(amount)} (${WAIP.pctRate(m)}%)`;
+      }
+      $('wg-route').textContent = route;
       const s = WAIP.budgetSplit(cfg, amount);
       if (s.below) {
         $('wg-above').hidden = true;
@@ -417,12 +443,20 @@
     $('tab-receipt').addEventListener('click', () => switchTab('receipt'));
     $('tab-where').addEventListener('click', () => switchTab('where'));
     $('wg-income').addEventListener('input', renderWhere);
+    $('wg-tax').addEventListener('input', renderWhere);
+    $('wg-mode').addEventListener('change', () => {
+      if ($('wg-mode').checked) {
+        const m = currentMarginal();
+        $('wg-tax').value = String(Math.round(WAIP.incomeTax(cfg, $('wg-income').value, m)));
+      }
+      renderWhere();
+    });
 
     csel.addEventListener('change', () => switchCountry(csel.value));
     langSel.addEventListener('change', () => { lang = langSel.value; renderCurrent(true); });
     $('item').addEventListener('change', () => applyPreset($('item').value));
     document.querySelectorAll('input,select').forEach(el => {
-      if (el === langSel || el === $('wg-income')) return;
+      if (el === langSel || el === $('wg-income') || el === $('wg-tax') || el === $('wg-mode')) return;
       el.addEventListener('input', () => { if (el !== csel && el !== $('item')) calc(); });
       el.addEventListener('change', () => { if (el !== csel && el !== $('item')) calc(); });
     });

@@ -22,6 +22,7 @@
     name: 'България',
     ratesStatus: 'ok',
     langNative: 'Български',
+    salaryDefault: 27600,
     currency: { symbol: '€', decimals: 2, decimalComma: true },
     // КФП 2026 (млн. €), see where-goes-2026.md
     budget: {
@@ -124,7 +125,13 @@
       compare: { item: 'Продукт', price: 'Цена', could: 'Какво би могло да струва', real: 'Какво наистина струва', govt: '% за държавата' },
       tabs: { receipt: 'Касов бон', where: 'Къде отива данъкът ми?' },
       wheregoes: {
-        input: 'Твоят данък върху дохода годишно',
+        input: 'Брутна годишна заплата (\u2248 облагаем доход)',
+        taxLabel: 'Твоят данък върху дохода годишно',
+        directToggle: 'или въведи данъка директно',
+        grossName: 'Брутна заплата',
+        taxName: 'Данък върху дохода',
+        directTag: '(въведен директно)',
+        incomeDefaultNote: 'Стандарт: \u20ac 2.300/мес \u2192 \u20ac 27.600 годишно (таван на осигуровките).',
         yourLabel: 'Твоят данък',
         baselineName: 'Какво струваш (на човек)',
         socialBlock: 'Какво струваш сам (социално осигуряване)',
@@ -197,7 +204,13 @@
       compare: { item: 'Item', price: 'Price', could: 'What it could cost', real: 'What it really costs', govt: '% to the government' },
       tabs: { receipt: 'Receipt', where: 'Where does my money go?' },
       wheregoes: {
-        input: 'Your income tax per year',
+        input: 'Gross yearly income (\u2248 taxable income)',
+        taxLabel: 'Your income tax per year',
+        directToggle: 'or enter the tax directly',
+        grossName: 'Gross salary',
+        taxName: 'Income tax',
+        directTag: '(entered directly)',
+        incomeDefaultNote: 'Default: \u20ac 2,300/month \u2192 \u20ac 27,600/yr (insurance ceiling).',
         yourLabel: 'Your tax',
         baselineName: 'What you cost (per person)',
         socialBlock: 'What you cost yourself (social security)',

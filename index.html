@@ -100,6 +100,7 @@ table.compare{width:100%;min-width:560px;border-collapse:collapse;background:var
 .wg-block-labels{display:flex;justify-content:space-between;gap:12px;font-size:.8rem;color:var(--muted)}
 .wg-block-labels span{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .wg-note{font-size:.9rem;color:var(--ink);margin:10px 0 0}
+.wg-route{font-size:.9rem;color:var(--ink);margin:12px 0 0}
 .wg-legend-title{font-size:.85rem;font-weight:700;margin:16px 0 6px;color:var(--strong)}
 .wg-rows{border-top:1px solid var(--line)}
 .wg-row{display:flex;justify-content:space-between;gap:12px;padding:6px 2px;border-bottom:1px solid var(--line);font-size:.85rem;color:var(--ink)}
@@ -211,10 +212,19 @@ table.compare{width:100%;min-width:560px;border-collapse:collapse;background:var
 
   <section id="view-where" hidden>
     <div class="wheregoes">
-      <div class="field">
+      <div class="field" id="wg-income-wrap">
         <label for="wg-income" id="wg-label"></label>
         <input id="wg-income" type="number" min="0" step="100" inputmode="numeric">
+        <div class="hint" id="wg-default-note"></div>
       </div>
+      <div class="field">
+        <label class="check"><input id="wg-mode" type="checkbox"><span id="wg-mode-label"></span></label>
+      </div>
+      <div class="field" id="wg-tax-wrap" hidden>
+        <label for="wg-tax" id="wg-tax-label"></label>
+        <input id="wg-tax" type="number" min="0" step="100" inputmode="numeric">
+      </div>
+      <p class="wg-route" id="wg-route"></p>
       <div id="wg-below" hidden>
         <div class="wg-bar"><div class="wg-fill" id="wg-fill"></div><div class="wg-marker"></div></div>
         <div class="wg-block-labels">
