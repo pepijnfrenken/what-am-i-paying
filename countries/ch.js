@@ -256,7 +256,7 @@
       notesCaveatsTitle: 'Was diese Rechnung nicht zeigt',
       notesRates: 'MWST 8,1 % (Standard), 2,6 % (reduziert), 3,8 % (Beherbergung), 0 % (Export). Biersteuer pauschal pro hl nach Stammw\u00fcrze: \u2264 10,0\u00b0P CHF 16,88; 10,1\u201314,0\u00b0P CHF 25,32; > 14,0\u00b0P CHF 33,76 (kleine Brauereien bis \u221240 %). Alkoholsteuer CHF 29 pro Liter reinen Alkohols. Tabaksteuer CHF 118,32 pro 1.000 + 25 % des Verkaufspreises. Mineral\u00f6lsteuer Benzin 76,82 Rp./l, Diesel 79,57 Rp./l (inkl. NAF). Quellen: ESTV, BAZG, BAFU (Stand Oktober 2026).',
       notesCaveats: 'Die MWST-Erh\u00f6hung auf 8,5 % (13. AHV) ist nur eine Referendumsvorlage und nicht in Kraft. Wein unterliegt keiner Bundessteuer (kantonale Abgaben m\u00f6glich). Die CO2-Abgabe (CHF 120/t) betrifft nur Heizstoffe. BVG/2. S\u00e4ule und NBU-Pr\u00e4mien sind nicht enthalten; der ALV-Beitrag ist bei CHF 148.200 gedeckelt. Treibstoffpreise stehen auf Rekordstand (Sept./Okt. 2026); alle Preise sind Momentaufnahmen.',
-      credit: 'Modularer Umbau des britischen Konzepts \u201cWhat am I actually paying?\u201d',
+      credit: 'Modularer Umbau des britischen \u201cWhat am I actually paying?\u201d von John Willis, mit seiner Erlaubnis.',
       panels: {
         alcohol: { cat: 'Getr\u00e4nk', ml: 'Menge (ml)', plato: 'Stammw\u00fcrze (\u00b0Plato)', abv: 'Alkohol (% vol)', hint: 'Bier: Bundessteuer pauschal pro Hektoliter nach Stammw\u00fcrze (\u00b0Plato). Wein: keine Bundessteuer.' },
         drinks: { ml: 'Menge (ml)', band: 'Art' },
@@ -348,7 +348,7 @@
       notesCaveatsTitle: 'What this does not show',
       notesRates: 'VAT 8.1% (standard), 2.6% (reduced), 3.8% (accommodation), 0% (exports). Beer duty flat per hl by original wort: \u2264 10.0°P CHF 16.88; 10.1\u201314.0°P CHF 25.32; > 14.0°P CHF 33.76 (small breweries up to \u221240%). Alcohol tax CHF 29 per litre of pure alcohol. Tobacco tax CHF 118.32 per 1,000 + 25% of the retail price. Mineral oil tax petrol 76.82 Rp/l, diesel 79.57 Rp/l (incl. NAF). Sources: ESTV, BAZG, BAFU (October 2026).',
       notesCaveats: 'The VAT increase to 8.5% (13th AHV) is only a referendum proposal, not in force. Wine is not subject to a federal duty (cantonal levies possible). The CO2 levy (CHF 120/t) applies to heating fuels only. BVG/2nd pillar and NBU premiums are not included; the ALV contribution is capped at CHF 148,200. Fuel prices are at record levels (Sept/Oct 2026); all prices are snapshots.',
-      credit: 'Modular rebuild of the UK \u201cWhat am I actually paying?\u201d concept.',
+      credit: 'Modular rebuild of the UK \u201cWhat am I actually paying?\u201d by John Willis, with his permission.',
       panels: {
         alcohol: { cat: 'Drink type', ml: 'Volume (ml)', plato: 'Original wort (\u00b0Plato)', abv: 'Alcohol (% vol)', hint: 'Beer: federal duty flat per hectolitre by original wort (\u00b0Plato). Wine: no federal duty.' },
         drinks: { ml: 'Volume (ml)', band: 'Type' },

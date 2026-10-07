@@ -181,7 +181,7 @@
       notesCaveatsTitle: 'Какво не показва това',
       notesRates: 'ДДС 20 % (стандартна), 9 % (намалена: хотели, книги, бебешки стоки), 0 % (износ). Акцизи: бира € 0,77 на hl на градус Плато; ракия/спиртни напитки € 562,42 на hl чист алкохол; цигари € 77 на 1 000 + 21 % (минимум € 120 на 1 000, от 1.8.2026); бензин € 0,36302/L; дизел € 0,33029/L. Виното и битовият ток са без акциз. Източници: НАП, ЗАДС, държавен бюджет 2026 (окт. 2026).',
       notesCaveats: 'Домашната ракия има дерогация: до 30 л/домакинство годишно, собствена суровина, регистриран казан. Нулевите акцизи за LPG/CNG важат САМО до 31.12.2026. Акцизът на цигарите се промени на 1.8.2026. Ресторантьорските услуги отново са с 20 % ДДС (от 2026). Цените са моментни снимки (окт. 2026).',
-      credit: 'Модулен преразказ на британската концепция „What am I actually paying?“',
+      credit: 'Модулен преразказ на „What am I actually paying?“ от Джон Уилис, с негово разрешение.',
       panels: {
         alcohol: { cat: 'Вид', ml: 'Обем (ml)', plato: 'Съдържание (°Плато)', abv: 'Алкохол (% об.)', hint: 'Бира: акциз на хектолитър на градус Плато (€ 0,77). Вино: без акциз.' },
         drinks: { ml: 'Обем (ml)', band: 'Вид' },
@@ -271,7 +271,7 @@
       notesCaveatsTitle: 'What this does not show',
       notesRates: 'VAT 20% (standard), 9% (reduced: hotels, books, baby goods), 0% (exports). Excise duties: beer \u20ac 0.77 per hl per degree Plato; rakia/spirits \u20ac 562.42 per hl of pure alcohol; cigarettes \u20ac 77 per 1,000 + 21% (minimum \u20ac 120 per 1,000, from 1.8.2026); petrol \u20ac 0.36302/L; diesel \u20ac 0.33029/L. Wine and household electricity are exempt. Sources: NRA, ЗАДС, State Budget Act 2026 (Oct 2026).',
       notesCaveats: 'Domestic rakia has a derogation: up to 30 L/household per year, own fruit, registered still. Zero excise on LPG/CNG applies ONLY until 31.12.2026. The cigarette excise changed on 1.8.2026. Restaurant services are back to 20% VAT (from 2026). Prices are snapshots (Oct 2026).',
-      credit: 'Modular rebuild of the UK \u201cWhat am I actually paying?\u201d concept.',
+      credit: 'Modular rebuild of the UK \u201cWhat am I actually paying?\u201d by John Willis, with his permission.',
       panels: {
         alcohol: { cat: 'Type', ml: 'Volume (ml)', plato: 'Original wort (°Plato)', abv: 'Alcohol (% vol)', hint: 'Beer: excise per hl per degree Plato (\u20ac 0.77). Wine: no excise.' },
         drinks: { ml: 'Volume (ml)', band: 'Type' },

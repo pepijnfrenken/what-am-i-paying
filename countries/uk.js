@@ -1,8 +1,9 @@
 /* countries/uk.js — United Kingdom.
  * Every rate below was independently verified against gov.uk on 2026-10-05
  * (see countries/uk-rates-2026.md; income tax in countries/uk-tax-2026.md).
- * The original "What am I actually paying?" page contributed the concept
- * only — test/uk_check.mjs pins the gov.uk-sourced math.
+ * The original "What am I actually paying?" page is John Willis's; its design
+ * and the UK idea are reused with his permission (README, Credit). All values
+ * below are independently sourced; test/uk_check.mjs pins the gov.uk math.
  *
  * Duty mechanics:
  *  - Alcohol: per litre of pure alcohol, the rate picked by strength band,
@@ -212,7 +213,7 @@
       notesCaveatsTitle: 'What this doesn\u2019t show',
       notesRates: 'VAT 20%. Fuel duty 52.95p per litre (5p cut extended to end of 2026). Alcohol duty from 1 Feb 2026, per litre of pure alcohol: beer 3.5\u20138.4% \u00a322.58; wine/spirits 3.5\u20138.4% \u00a326.61; any drink 8.5\u201322% \u00a330.62; over 22% \u00a333.99; draught 3.5\u20138.4% \u00a319.45; under 3.5% \u00a39.96 (draught \u00a38.58). Cigarettes from 1 Oct 2026: \u00a3394.09 per 1,000 plus 16.5% of retail price, minimum \u00a3518.75 per 1,000. Vaping duty from 1 Oct 2026: \u00a32.20 per 10ml. Soft drinks levy from 1 Apr 2026: 27.8p per litre (8g+ sugar), 20.8p (5\u20138g).',
       notesCaveats: 'The underlying price still contains taxes the seller\u2019s business pays (employer NI, business rates, corporation tax, import tariffs), so the true government share is higher than shown. Small-producer alcohol relief is ignored. VAT is charged on top of duty, which is why it is taken off the full ticket price first.',
-      credit: 'Modular rebuild of the UK \u201cWhat am I actually paying?\u201d concept.',
+      credit: 'Modular rebuild of the UK \u201cWhat am I actually paying?\u201d by John Willis, with his permission.',
       panels: {
         alcohol: { cat: 'Drink type', ml: 'Volume (ml)', abv: 'Strength (% ABV)', hint: 'Draught relief only applies under 8.5% ABV.', draught: 'Draught (served in a pub or bar)' },
         drinks: { ml: 'Volume (ml)', band: 'Sugar per 100ml' },

@@ -149,11 +149,14 @@ Node 21 or newer is needed. The browser check needs Chromium or Chrome; see
 
 ## Credit
 
-The original concept, and the original UK version, is
-**"What am I actually paying?"** (<https://wonderful-faloodeh-c2a85d.netlify.app/>).
-This project started as a rebuild of that idea for the Dutch system and grew
-into a modular tool for several countries. Full credit for the original idea
-to its author.
+The original **"What am I actually paying?"** page is by **John Willis**
+(<https://wonderful-faloodeh-c2a85d.netlify.app/>). This project started as a
+rebuild of his UK idea for the Dutch system and grew into a modular tool for
+several countries. The page design (the receipt, the four-colour bar) comes
+from his page and is reused here with his permission.
+
+All tax figures are sourced from the authorities listed in each country's
+rates doc.
 
 ## License
 

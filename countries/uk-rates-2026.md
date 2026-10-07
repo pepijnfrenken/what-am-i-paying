@@ -3,8 +3,9 @@
 Every duty rate in `countries/uk.js` was **re-verified against gov.uk on
 2026-10-05** and matches the statutory tables in force today. The income-tax
 rules have their own doc (`uk-tax-2026.md`). The original "What am I actually
-paying?" page contributed the concept and the UK idea only; no number here
-depends on it as a source anymore.
+paying?" page is John Willis's; the UK idea and the page design are reused
+with his permission (README, Credit). No number here depends on that page as
+a source.
 
 ## Indirect taxes and duties (verified 2026-10-05)
 

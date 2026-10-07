@@ -160,7 +160,7 @@ export function renderCountry({ code, name, nameEn, symbol, locale, year }) {
       notesCaveatsTitle: 'What this does not show',
       notesRates: 'TODO: every rate with its source and effective date.',
       notesCaveats: 'TODO: what the calculation leaves out.',
-      credit: 'Modular rebuild of the UK \\u201cWhat am I actually paying?\\u201d concept.',
+      credit: 'Modular rebuild of the UK \\u201cWhat am I actually paying?\\u201d by John Willis, with his permission.',
       panels: {
         custom: { fix: 'Fixed levy', pct: 'Levy as % of price' }
       },
